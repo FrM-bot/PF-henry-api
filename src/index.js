@@ -1,12 +1,12 @@
-import express from 'express'
-
 import dotenv from 'dotenv'
 
-dotenv.config()
+import express from 'express'
 
 import { PrismaClient } from '@prisma/client'
 
 import cors from 'cors'
+
+dotenv.config()
 
 const prisma = new PrismaClient()
 
@@ -16,14 +16,23 @@ app.use(express.json())
 
 app.use(cors())
 
+console.log(process.env.NODE_ENV)
+
+app.get('/', async (req, res) => {
+  const names = ['Franco Maciel']
+  res.status(200).send(names)
+})
+
 app.get('/u', async (req, res) => {
   const data = await prisma.user.findMany({})
   res.json(data)
 })
+
 app.get('/b', async (req, res) => {
   const data = await prisma.bank.findMany({})
   res.json(data)
 })
+
 app.post('/addBank', async (req, res) => {
   const bank = req.body
   const data = await prisma.bank.create({
@@ -36,7 +45,7 @@ app.post('/addBank', async (req, res) => {
 
 app.post('/addUser', async (req, res) => {
   const user = req.body
-  const data = await db.user.create({
+  const data = await prisma.user.create({
     data: {
       username: user.username
     }
