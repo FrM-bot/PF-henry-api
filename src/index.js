@@ -1,10 +1,14 @@
 import express from 'express'
 
+import dotenv from 'dotenv'
+
+dotenv.config()
+
 import { PrismaClient } from '@prisma/client'
 
 import cors from 'cors'
 
-const db = new PrismaClient()
+const prisma = new PrismaClient()
 
 const app = express()
 
@@ -13,16 +17,16 @@ app.use(express.json())
 app.use(cors())
 
 app.get('/u', async (req, res) => {
-  const data = await db.user.findMany({})
+  const data = await prisma.user.findMany({})
   res.json(data)
 })
 app.get('/b', async (req, res) => {
-  const data = await db.bank.findMany({})
+  const data = await prisma.bank.findMany({})
   res.json(data)
 })
 app.post('/addBank', async (req, res) => {
   const bank = req.body
-  const data = await db.bank.create({
+  const data = await prisma.bank.create({
     data: {
       name: bank.name
     }
@@ -42,7 +46,7 @@ app.post('/addUser', async (req, res) => {
 
 app.post('/subscribe', async (req, res) => {
   const user = req.body
-  const data = await db.user.update({
+  const data = await prisma.user.update({
     where: {
       id: user.userID
     },
