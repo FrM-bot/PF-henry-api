@@ -33,6 +33,8 @@ app.get('/b', async (req, res) => {
   res.json(data)
 })
 
+//francomei
+
 app.post('/addBank', async (req, res) => {
   const bank = req.body
   const data = await prisma.bank.create({
