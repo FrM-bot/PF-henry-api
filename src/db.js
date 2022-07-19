@@ -1,9 +1,9 @@
 import dotenv from 'dotenv'
-dotenv.config()
 
 import { PrismaClient } from '@prisma/client'
+dotenv.config()
 const prisma = new PrismaClient()
 
 export default {
-    conn: prisma,     // para importart la conexión { conn } = require('./db.js');
-};
+  conn: prisma // para importart la conexión { conn } = require('./db.js');
+}
