@@ -76,7 +76,7 @@ model Category {
 
 model Operation {
   id           String     @id @default(uuid())
-  name         String     @default("No category")
+  name         String     @default("No operation")
   movementsIDs String[]
   movements    Movement[]
 }
