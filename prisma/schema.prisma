@@ -6,21 +6,80 @@ generator client {
 }
 
 datasource db {
-  provider = "mongodb"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-model Bank {
-  id          String      @id @default(auto()) @db.ObjectId @map("_id")
-  name        String      @unique
-  users       User[]      @relation(fields: [usersIDs], references: [id])
-  usersIDs    String[]    @db.ObjectId
+model User {
+  id            String      @id @default(uuid())
+  name          String      
+  lastname      String
+  email         String      @unique
+  username      String      @unique
+  password      String      
+  profilepic    String
+  Validate      Boolean     @default(true)
+  favourites    Fav[]       
+  favouritesIDs String[]    
+  accounts      Account[]   
+  accountsIDs   String[]    
 }
 
-model User {
-  id          String      @id @default(auto()) @db.ObjectId @map("_id")
-  username    String      @unique
-  amount      Float       @default(0.0)
-  banks       Bank[]      @relation(fields: [banksIDs], references: [id])
-  banksIDs    String[]    @db.ObjectId
+model Fav {
+  id            String      @id @default(uuid())
+  users         User        @relation(fields: [usersIDs], references: [id])
+  usersIDs      String     
+}
+
+model Account {
+  id            String      @id @default(uuid())
+  cvu           String      @unique
+  balance       Float       @default(0.00)
+  users         User        @relation(fields: [usersIDs], references: [id])
+  usersIDs      String      
+  movements     Movement[]  
+  movementsIDs  String[]    
+  currencies    Currency?    
+  currenciesIDs String   
+  typeOfAccount String      @default("origin")   
+}
+
+model Currency {
+  id            String      @id @default(uuid())
+  name          String      @unique
+  price         Float       @default(0.00)
+  accounts      Account     @relation(fields: [accountsIDs], references: [id])
+  accountsIDs   String      @unique
+  movements     Movement    @relation(fields: [movementsIDs], references: [id])
+  movementsIDs  String      @unique
+}
+
+model Movement {
+  id            String      @id @default(uuid())
+  date          DateTime    @default(now())
+  amount        Float       @default(0.00)
+  receipt       Boolean?    @default(false)
+  receiptCode   String?     @default("No receipt")
+  accounts      Account     @relation(fields: [accountsIDs], references: [id])
+  accountsIDs   String   
+  currencies    Currency?
+  operations    Operation   @relation(fields: [operationsIDs], references: [id])
+  operationsIDs String     
+  categories    Category    @relation(fields: [categoriesIDs], references: [id])
+  categoriesIDs String
+  destiny       String     
+}
+
+model Category {
+  id            String      @id @default(uuid())
+  name          String      @default("No category")
+  movements     Movement[]  
+  movementsIDs  String[]   
+}
+
+model Operation {
+  id            String      @id @default(uuid())
+  name          String      @default("No category")
+  movements     Movement[]  
+  movementsIDs  String[]   
 }
