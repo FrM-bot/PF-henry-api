@@ -1,26 +1,82 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "mongodb"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-model Bank {
-  id          String      @id @default(auto()) @db.ObjectId @map("_id")
-  name        String      @unique
-  users       User[]      @relation(fields: [usersIDs], references: [id])
-  usersIDs    String[]    @db.ObjectId
+model User {
+  id            String    @id @default(uuid())
+  name          String
+  lastname      String
+  email         String    @unique
+  username      String    @unique
+  password      String
+  profilepic    String
+  Validate      Boolean   @default(true)
+  favouritesIDs String[]
+  accountsIDs   String[]
+  accounts      Account[]
+  favourites    Fav[]
 }
 
-model User {
-  id          String      @id @default(auto()) @db.ObjectId @map("_id")
-  username    String      @unique
-  amount      Float       @default(0.0)
-  banks       Bank[]      @relation(fields: [banksIDs], references: [id])
-  banksIDs    String[]    @db.ObjectId
+model Fav {
+  id       String @id @default(uuid())
+  usersIDs String
+  users    User   @relation(fields: [usersIDs], references: [id])
+}
+
+model Account {
+  id            String     @id @default(uuid())
+  cvu           String     @unique
+  balance       Float      @default(0.0)
+  usersIDs      String
+  movementsIDs  String[]
+  currenciesIDs String
+  typeOfAccount String     @default("origin")
+  users         User       @relation(fields: [usersIDs], references: [id])
+  currencies    Currency?
+  movements     Movement[]
+}
+
+model Currency {
+  id           String   @id @default(uuid())
+  name         String   @unique
+  price        Float    @default(0.0)
+  accountsIDs  String   @unique
+  movementsIDs String   @unique
+  accounts     Account  @relation(fields: [accountsIDs], references: [id])
+  movements    Movement @relation(fields: [movementsIDs], references: [id])
+}
+
+model Movement {
+  id            String    @id @default(uuid())
+  date          DateTime  @default(now())
+  amount        Float     @default(0.0)
+  receipt       Boolean?  @default(false)
+  receiptCode   String?   @default("No receipt")
+  accountsIDs   String
+  operationsIDs String
+  categoriesIDs String
+  destiny       String
+  accounts      Account   @relation(fields: [accountsIDs], references: [id])
+  categories    Category  @relation(fields: [categoriesIDs], references: [id])
+  operations    Operation @relation(fields: [operationsIDs], references: [id])
+  currencies    Currency?
+}
+
+model Category {
+  id           String     @id @default(uuid())
+  name         String     @default("No category")
+  movementsIDs String[]
+  movements    Movement[]
+}
+
+model Operation {
+  id           String     @id @default(uuid())
+  name         String     @default("No category")
+  movementsIDs String[]
+  movements    Movement[]
 }
