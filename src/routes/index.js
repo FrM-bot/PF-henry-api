@@ -5,8 +5,6 @@ import cryptsRoute from './crypts.js' // esta es la manera de importar rutas de 
 
 const router = Router()
 
-router.use('/user', userRoute)
-
 router.use('/user', userRoute)// esta es la forma de usar rutas de cada archivo
 router.use('/types', typesRoute)
 router.use('/crypts', cryptsRoute)// esta es la forma de usar rutas de cada archivo
