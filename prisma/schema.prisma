@@ -19,7 +19,6 @@ model User {
   Validate      Boolean   @default(true)
   favouritesIDs String[]
   accountsIDs   String[]
-  dni           String    @default("")
   accounts      Account[]
   favourites    Fav[]
 }
@@ -64,7 +63,6 @@ model Movement {
   currencyId    String
   accounts      Account   @relation(fields: [accountsIDs], references: [id])
   categories    Category  @relation(fields: [categoriesIDs], references: [id])
-  Currency      Currency  @relation(fields: [currencyId], references: [id])
   operations    Operation @relation(fields: [operationsIDs], references: [id])
   currencies    Currency  @relation(fields: [currencyId], references: [id])
 }
