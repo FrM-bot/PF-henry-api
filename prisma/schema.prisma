@@ -35,11 +35,10 @@ model Account {
   balance       Float      @default(0.0)
   usersIDs      String
   typeOfAccount String     @default("origin")
-  users         User       @relation(fields: [usersIDs], references: [id])
-  currencies    Currency   @relation(fields: [currencieID], references: [id])
   currencieID   String
+  currencies    Currency   @relation(fields: [currencieID], references: [id])
+  users         User       @relation(fields: [usersIDs], references: [id])
   movements     Movement[]
-  movementsIDs  String[]
 }
 
 model Currency {
@@ -60,11 +59,11 @@ model Movement {
   operationsIDs String
   categoriesIDs String
   destiny       String
+  currencyId    String
   accounts      Account   @relation(fields: [accountsIDs], references: [id])
   categories    Category  @relation(fields: [categoriesIDs], references: [id])
-  operations    Operation @relation(fields: [operationsIDs], references: [id])
   currencies    Currency  @relation(fields: [currencyId], references: [id])
-  currencyId    String
+  operations    Operation @relation(fields: [operationsIDs], references: [id])
 }
 
 model Category {
