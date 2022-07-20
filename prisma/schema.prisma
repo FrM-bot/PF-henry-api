@@ -37,7 +37,7 @@ model Account {
   typeOfAccount String     @default("origin")
   currencieID   String
   movementsIDs  String[]
-  Currency      Currency   @relation(fields: [currencieID], references: [id])
+  currencies      Currency   @relation(fields: [currencieID], references: [id])
   users         User       @relation(fields: [usersIDs], references: [id])
   movements     Movement[]
 }
