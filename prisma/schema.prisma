@@ -34,11 +34,11 @@ model Account {
   cvu           String     @unique
   balance       Float      @default(0.0)
   usersIDs      String
-  movementsIDs  String[]
   typeOfAccount String     @default("origin")
   users         User       @relation(fields: [usersIDs], references: [id])
   currencies    Currency?
   movements     Movement[]
+  movementsIDs  String[]
 }
 
 model Currency {
@@ -76,7 +76,7 @@ model Category {
 
 model Operation {
   id           String     @id @default(uuid())
-  name         String     @default("No category")
+  name         String     @default("No operation")
   movementsIDs String[]
   movements    Movement[]
 }
