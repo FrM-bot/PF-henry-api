@@ -36,18 +36,18 @@ model Account {
   usersIDs      String
   typeOfAccount String     @default("origin")
   users         User       @relation(fields: [usersIDs], references: [id])
-  currencies    Currency?
+  currencies    Currency   @relation(fields: [currencieID], references: [id])
+  currencieID   String
   movements     Movement[]
   movementsIDs  String[]
 }
 
 model Currency {
-  id          String     @id @default(uuid())
-  name        String     @unique
-  price       Float      @default(0.0)
-  accountsIDs String     @unique
-  accounts    Account    @relation(fields: [accountsIDs], references: [id])
-  movements   Movement[]
+  id        String     @id @default(uuid())
+  name      String     @unique
+  price     Float      @default(0.0)
+  accounts  Account[]
+  movements Movement[]
 }
 
 model Movement {
@@ -69,14 +69,14 @@ model Movement {
 
 model Category {
   id           String     @id @default(uuid())
-  name         String     @default("No category")
+  name         String     @unique
   movementsIDs String[]
   movements    Movement[]
 }
 
 model Operation {
   id           String     @id @default(uuid())
-  name         String     @default("No operation")
+  name         String     @unique
   movementsIDs String[]
   movements    Movement[]
 }
