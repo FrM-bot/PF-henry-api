@@ -33,13 +33,12 @@ model Account {
   id            String     @id @default(uuid())
   cvu           String     @unique
   balance       Float      @default(0.0)
-  usersIDs      String
-  movementsIDs  String[]
-  currenciesIDs String
-  typeOfAccount String     @default("origin")
   users         User       @relation(fields: [usersIDs], references: [id])
+  usersIDs      String
+  typeOfAccount String     @default("origin")
   currencies    Currency?
   movements     Movement[]
+  movementsIDs  String[]
 }
 
 model Currency {
