@@ -11,6 +11,7 @@ model User {
   id            String    @id @default(uuid())
   name          String
   lastname      String
+  dni           String    @default("")
   email         String    @unique
   username      String    @unique
   password      String
@@ -47,7 +48,7 @@ model Currency {
   price       Float      @default(0.0)
   accountsIDs String     @unique
   accounts    Account    @relation(fields: [accountsIDs], references: [id])
-  Movement    Movement[]
+  movements   Movement[]
 }
 
 model Movement {
@@ -65,6 +66,7 @@ model Movement {
   categories    Category  @relation(fields: [categoriesIDs], references: [id])
   Currency      Currency  @relation(fields: [currencyId], references: [id])
   operations    Operation @relation(fields: [operationsIDs], references: [id])
+  currencies    Currency  @relation(fields: [currencyId], references: [id])
 }
 
 model Category {
