@@ -53,6 +53,26 @@ router.post('/signin', async (req, res) => {
   }
 })
 
+router.put('/useredit', async (req, res) => {
+  const user = req.body
+  try {
+    if (user.id === undefined) {
+      return res.status(404)
+    }
+    const data = await prisma.user.update({
+      where: {
+        id: user.id
+      },
+      data: {
+        ...user
+      }
+    })
+    res.json(data)
+  } catch (error) {
+    res.status(404).json(error)
+  }
+})
+
 router.get('/', async (req, res) => {
   const user = req.body
   try {
