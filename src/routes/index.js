@@ -11,6 +11,6 @@ router.use('/category', categoryRoute)
 router.use('/types', typesRoute)// esta es la forma de usar rutas de cada archivo
 router.use('/crypts', cryptsRoute)// esta es la forma de usar rutas de cada archivo
 
-// OJO: aqui van las otras rutas para cada tabla
+// OJO: aqui van las otras rutas para cada tabla...
 
 export default router
