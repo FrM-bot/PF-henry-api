@@ -5,7 +5,6 @@ const prisma = new PrismaClient()
 const router = Router()
 
 router.get('/', async (req, res) => {
-  //   const { email, password, name, lastname, dni } = req.body
   try {
     const data = await prisma.category.findMany({})
     const result = data.map(d => d.name)
