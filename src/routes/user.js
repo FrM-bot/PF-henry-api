@@ -1,6 +1,9 @@
 import { Router } from 'express'
 import { PrismaClient } from '@prisma/client'
 import bcrypt from 'bcrypt'
+import jwt from 'jsonwebtoken'
+import userExtractor from '../middlewares/userExtractor.js'
+
 const prisma = new PrismaClient()
 
 const router = Router()
@@ -53,29 +56,51 @@ router.post('/signin', async (req, res) => {
   }
 })
 
-router.get('/', async (req, res) => {
-  const user = req.body
+router.get('/', userExtractor, async (req, res) => {
+  console.log(req.userToken)
+  const id = req.userToken
   try {
-    const data = await prisma.user.findMany({
+    const data = await prisma.user.findUnique({
       where: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        lastname: user.lastname,
-        password: user.password,
-        username: user.username,
-        dni: user.dni,
-        profilepic: user.profilepic,
-        Validate: prisma.Validate,
-        favouritesIDs: user.favouritesIDs,
-        accountsIDs: user.accountsIDs,
-        accounts: user.accounts,
-        favourites: user.favourites
+        id
       }
     })
     res.json(data)
   } catch (error) {
     res.status(404).json(error)
+  }
+})
+
+router.get('/login', async (req, res) => {
+  const { email, password } = req.body
+  try {
+    const user = await prisma.user.findUnique({
+      where: {
+        email
+      }
+    })
+    if (!user) {
+      return res.status(400).send({ error: 'User not found' })
+    }
+    const passwordIs = user ? (await bcrypt.compare(password, user.password)) : (false)
+
+    if (!(passwordIs && user)) {
+      return res.status(406)
+    }
+
+    const dataForToken = {
+      userID: user.id
+    }
+
+    const minutes = 20
+
+    const token = jwt.sign(dataForToken, process.env.JWT, {
+      expiresIn: 60 * minutes
+    })
+
+    res.status(200).send({ token })
+  } catch (error) {
+    res.status(401).json({ error })
   }
 })
 
