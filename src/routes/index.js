@@ -1,7 +1,7 @@
 import { Router } from 'express'
-import userRoute from './user.js'// esta es la manera de importar rutas de cada archivo accountRoute, typeRoute, etc
+import userRoute from './user.js' // esta es la forma de usar rutas de cada archivo
 import typesRoute from './type.js'
-import cryptsRoute from './crypts.js'
+import cryptsRoute from './crypts.js' // esta es la manera de importar rutas de cada archivo accountRoute, typeRoute, etc
 
 const router = Router()
 
