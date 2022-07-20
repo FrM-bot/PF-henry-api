@@ -36,8 +36,7 @@ model Account {
   usersIDs      String
   typeOfAccount String     @default("origin")
   currencieID   String
-  movementsIDs  String[]
-  currencies      Currency   @relation(fields: [currencieID], references: [id])
+  currencies    Currency   @relation(fields: [currencieID], references: [id])
   users         User       @relation(fields: [usersIDs], references: [id])
   movements     Movement[]
 }
@@ -46,7 +45,7 @@ model Currency {
   id        String     @id @default(uuid())
   name      String     @unique
   price     Float      @default(0.0)
-  Account   Account[]
+  accounts  Account[]
   movements Movement[]
 }
 
