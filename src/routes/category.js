@@ -19,7 +19,10 @@ router.post('/', async (req, res) => {
   const category = req.body
   const data = await prisma.category.create({
     data: {
-      name: category.name
+      transport: category.transport,
+      shopping: category.shopping,
+      subscriptions: category.subscriptions,
+      groceries: category.groceries
     }
   })
   res.json(data)

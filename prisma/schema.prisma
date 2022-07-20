@@ -18,6 +18,7 @@ model User {
   Validate      Boolean   @default(true)
   favouritesIDs String[]
   accountsIDs   String[]
+  dni           String    @default("")
   accounts      Account[]
   favourites    Fav[]
 }
