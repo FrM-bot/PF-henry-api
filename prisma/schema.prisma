@@ -19,6 +19,7 @@ model User {
   Validate      Boolean   @default(true)
   favouritesIDs String[]
   accountsIDs   String[]
+  dni           String    @default("")
   accounts      Account[]
   favourites    Fav[]
 }
@@ -34,11 +35,11 @@ model Account {
   cvu           String     @unique
   balance       Float      @default(0.0)
   usersIDs      String
+  movementsIDs  String[]
   typeOfAccount String     @default("origin")
   users         User       @relation(fields: [usersIDs], references: [id])
   currencies    Currency?
   movements     Movement[]
-  movementsIDs  String[]
 }
 
 model Currency {
@@ -60,11 +61,12 @@ model Movement {
   operationsIDs String
   categoriesIDs String
   destiny       String
+  currencyId    String
   accounts      Account   @relation(fields: [accountsIDs], references: [id])
   categories    Category  @relation(fields: [categoriesIDs], references: [id])
+  Currency      Currency  @relation(fields: [currencyId], references: [id])
   operations    Operation @relation(fields: [operationsIDs], references: [id])
   currencies    Currency  @relation(fields: [currencyId], references: [id])
-  currencyId    String
 }
 
 model Category {
@@ -76,7 +78,7 @@ model Category {
 
 model Operation {
   id           String     @id @default(uuid())
-  name         String     @default("No operation")
+  name         String     @default("No category")
   movementsIDs String[]
   movements    Movement[]
 }
