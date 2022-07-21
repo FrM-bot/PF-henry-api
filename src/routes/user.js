@@ -64,6 +64,10 @@ router.get('/', userExtractor, async (req, res) => {
     const data = await prisma.user.findUnique({
       where: {
         id
+      },
+      include: {
+        accounts: true,
+        Fav: true
       }
     })
     res.json(data)
