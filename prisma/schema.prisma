@@ -17,16 +17,16 @@ model User {
   password      String
   profilepic    String
   Validate      Boolean   @default(true)
-  favouritesIDs String[]
   accountsIDs   String[]
   accounts      Account[]
-  favourites    Fav[]
+  Fav           Fav[]
 }
 
 model Fav {
   id       String @id @default(uuid())
-  usersIDs String
-  users    User   @relation(fields: [usersIDs], references: [id])
+  userID   String
+  friendID   String
+  User     User   @relation(fields: [userID], references: [id])
 }
 
 model Account {
