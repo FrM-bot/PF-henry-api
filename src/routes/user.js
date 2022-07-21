@@ -58,7 +58,7 @@ router.post('/signin', async (req, res) => {
 })
 
 router.get('/', userExtractor, async (req, res) => {
-  console.log(req.userToken)
+  // console.log(req.userToken)
   const id = req.userToken
   try {
     const data = await prisma.user.findUnique({
