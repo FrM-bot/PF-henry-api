@@ -4,8 +4,10 @@ const prisma = new PrismaClient()
 const router = Router()
 
 router.post('/', async (req, res) => {
-  const { cvu, email, currency } = req.body
+  const { DNI, email, currency } = req.body
   try {
+    const cvuPart = `${Math.floor(Math.random() * 10000000000000)}`
+    const cvu = DNI + cvuPart
     const newAccount = await prisma.account.create({
       data: {
         cvu,
