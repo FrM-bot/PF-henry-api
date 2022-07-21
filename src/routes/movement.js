@@ -66,11 +66,78 @@ router.post('/make_a_movement', async (req, res) => {
         }
       }
     })
-    res.status(200).json({ newMovement, updateMainAcc, updateDestinyAcc })
+    const newMovementDestiny = await prisma.movement.create({
+      data: {
+        amount,
+        receipt: true,
+        sentBy: cvuMain,
+        accounts: {
+          connect: { cvu: cvuD }
+        },
+        currencies: {
+          connectOrCreate: {
+            where: {
+              name: currency
+            },
+            create: {
+              name: currency
+            }
+          }
+        },
+        operations: {
+          connectOrCreate: {
+            where: {
+              name: operation === 'Debit' ? 'Credit' : 'Debit'
+            },
+            create: {
+              name: operation === 'Debit' ? 'Credit' : 'Debit'
+            }
+          }
+        },
+        categories: {
+          connectOrCreate: {
+            where: {
+              name: category
+            },
+            create: {
+              name: category
+            }
+          }
+        }
+      }
+    })
+    res.status(200).json({ newMovement, newMovementDestiny, updateMainAcc, updateDestinyAcc })
   } catch (error) {
     console.log(error)
     res.status(400).json({ msg: "Can't make the movement, try again later" })
   }
 })
 
+router.get('/', async (req, res) => {
+  const { cvu } = req.body
+  try {
+    const accountMovs = await prisma.account.findUnique({
+      where: {
+        cvu
+      },
+      include: {
+        movements: {
+          select: {
+            date: true,
+            amount: true,
+            destiny: true,
+            sentBy: true,
+            currencies: true,
+            categories: true,
+            operations: true
+          }
+        }
+      }
+    })
+    res.status(200).json(accountMovs)
+  } catch (error) {
+    console.log(error)
+    res.status(400).json({ msg: 'Cannot find movements for this account' })
+  }
+})
 export default router

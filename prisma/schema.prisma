@@ -58,7 +58,8 @@ model Movement {
   accountsIDs   String
   operationsIDs String
   categoriesIDs String
-  destiny       String
+  destiny       String    @default("Without destiny")
+  sentBy        String    @default("Not sent")
   currencyId    String
   accounts      Account   @relation(fields: [accountsIDs], references: [id])
   categories    Category  @relation(fields: [categoriesIDs], references: [id])
