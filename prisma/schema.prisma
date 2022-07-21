@@ -8,24 +8,25 @@ datasource db {
 }
 
 model User {
-  id            String    @id @default(uuid())
-  name          String
-  lastname      String
-  dni           String    @default("")
-  email         String    @unique
-  username      String    @unique
-  password      String
-  profilepic    String
-  Validate      Boolean   @default(true)
-  accountsIDs   String[]
-  accounts      Account[]
-  Fav           Fav[]
+  id          String    @id @default(uuid())
+  googleID    String?   @unique
+  name        String
+  lastname    String
+  dni         String    @default("")
+  email       String    @unique
+  username    String    @unique
+  password    String
+  profilepic  String
+  Validate    Boolean   @default(true)
+  accountsIDs String[]
+  accounts    Account[]
+  Fav         Fav[]
 }
 
 model Fav {
   id       String @id @default(uuid())
   userID   String
-  friendID   String
+  friendID String
   User     User   @relation(fields: [userID], references: [id])
 }
 

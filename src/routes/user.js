@@ -9,7 +9,7 @@ const prisma = new PrismaClient()
 const router = Router()
 
 router.post('/signin', async (req, res) => {
-  const { email, password, name, lastname, DNI, username, profilepic } = req.body
+  const { email, password, name, lastname, DNI, username, profilepic, googleID } = req.body
   if (!email || !password || !name || !lastname || !username) {
     res.status(404).json({ msg: 'Required info is never sent' })
   }
@@ -27,6 +27,7 @@ router.post('/signin', async (req, res) => {
         lastname,
         password: hashedPass,
         profilepic: profilepic || DEFAULT_PIC,
+        googleID,
         accounts: {
           create: {
             cvu,
@@ -72,16 +73,40 @@ router.get('/', userExtractor, async (req, res) => {
 })
 
 router.post('/login', async (req, res) => {
-  const { email, password } = req.body
+  const { email, password, googleID } = req.body
+
+  let user = {}
+
+  const TOKENT_EXPIRED = 60
+
   try {
-    const user = await prisma.user.findUnique({
+    if (googleID) {
+      user = await prisma.user.findUnique({
+        where: {
+          googleID
+        }
+      })
+      const dataForToken = {
+        userID: user.id
+      }
+
+      const token = jwt.sign(dataForToken, process.env.JWT, {
+        expiresIn: 60 * TOKENT_EXPIRED
+      })
+
+      return res.status(200).send({ token })
+    }
+
+    user = await prisma.user.findUnique({
       where: {
         email
       }
     })
+
     if (!user) {
       return res.status(400).send({ error: 'User not found' })
     }
+
     const passwordIs = user ? (await bcrypt.compare(password, user.password)) : (false)
 
     if (!(passwordIs && user)) {
@@ -92,10 +117,8 @@ router.post('/login', async (req, res) => {
       userID: user.id
     }
 
-    const minutes = 20
-
     const token = jwt.sign(dataForToken, process.env.JWT, {
-      expiresIn: 60 * minutes
+      expiresIn: 60 * TOKENT_EXPIRED
     })
 
     res.status(200).send({ token })
