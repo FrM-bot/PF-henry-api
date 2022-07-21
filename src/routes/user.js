@@ -71,7 +71,7 @@ router.get('/', userExtractor, async (req, res) => {
   }
 })
 
-router.get('/login', async (req, res) => {
+router.post('/login', async (req, res) => {
   const { email, password } = req.body
   try {
     const user = await prisma.user.findUnique({
@@ -85,7 +85,7 @@ router.get('/login', async (req, res) => {
     const passwordIs = user ? (await bcrypt.compare(password, user.password)) : (false)
 
     if (!(passwordIs && user)) {
-      return res.status(406)
+      return res.status(406).send({ error: 'Email or password are incorrect' })
     }
 
     const dataForToken = {
