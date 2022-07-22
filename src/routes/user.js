@@ -71,6 +71,21 @@ router.get('/', userExtractor, async (req, res) => {
   }
 })
 
+router.get('/users', async (req, res) => {
+  const { id } = req.body
+  try {
+    const data = await prisma.user.findUnique({
+      where: {
+        id
+      }
+    })
+    res.json(data)
+  } catch (error) {
+    console.error(error)
+    res.status(404).json(error)
+  }
+})
+
 router.get('/login', async (req, res) => {
   const { email, password } = req.body
   try {
