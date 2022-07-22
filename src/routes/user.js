@@ -66,7 +66,17 @@ router.get('/', userExtractor, async (req, res) => {
         id
       },
       include: {
-        accounts: true,
+        accounts: {
+          include: {
+            movements: {
+              include: {
+                accounts: true,
+                categories: true,
+                operations: true
+              }
+            }
+          }
+        },
         Fav: true
       }
     })
