@@ -5,6 +5,13 @@ const router = Router()
 
 router.post('/make_a_movement', async (req, res) => {
   const { cvuMain, amount, cvuD, currency, operation, category } = req.body
+  const mainAcc = await prisma.account.findUnique({
+    where: {
+      cvu: cvuMain
+    }
+  })
+  console.log(mainAcc)
+  if (mainAcc.balance < amount) return res.status(400).json({ msg: 'Your balance is less than necessary' })
   try {
     const updateMainAcc = await prisma.account.update({
       where: {
@@ -113,7 +120,7 @@ router.post('/make_a_movement', async (req, res) => {
   }
 })
 
-router.get('/', async (req, res) => {
+router.post('/', async (req, res) => {
   const { cvu } = req.body
   try {
     const accountMovs = await prisma.account.findUnique({
