@@ -6,23 +6,25 @@ const router = Router()
 
 router.get('/', async (req, res) => {
   try {
-    const data = await prisma.category.findMany({})
-    const result = data.map(d => d.name)
-    res.json(result)
+    const data = await prisma.category.findMany({
+      select: {
+        name: true
+      }
+    })
+    res.json(data)
   } catch (error) {
     console.log(error)
   }
 })
 
 router.post('/', async (req, res) => {
-  const category = req.body
-  const data = await prisma.category.create({
-    data: {
-      transport: category.transport,
-      shopping: category.shopping,
-      subscriptions: category.subscriptions,
-      groceries: category.groceries
-    }
+  const data = await prisma.category.createMany({
+    data: [
+      { name: 'transport' },
+      { name: 'shopping' },
+      { name: 'subscriptions' },
+      { name: 'groceries' }
+    ]
   })
   res.json(data)
 })

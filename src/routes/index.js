@@ -5,6 +5,7 @@ import typesRoute from './type.js'
 import currencyRoute from './currency.js' // esta es la manera de importar rutas de cada archivo accountRoute, typeRoute, etc
 import movementsRoute from './movement.js'
 import accountsRoute from './account.js'
+import favouritesRoute from './fav.js'
 
 const router = Router()
 
@@ -14,6 +15,7 @@ router.use('/types', typesRoute)// esta es la forma de usar rutas de cada archiv
 router.use('/currency', currencyRoute)// esta es la forma de usar rutas de cada archivo
 router.use('/movement', movementsRoute)
 router.use('/account', accountsRoute)
+router.use('/favourites', favouritesRoute)
 
 // OJO: aqui van las otras rutas para cada tabla...
 
