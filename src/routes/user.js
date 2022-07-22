@@ -70,7 +70,13 @@ router.get('/', userExtractor, async (req, res) => {
           include: {
             movements: {
               include: {
-                accounts: true,
+                accounts: {
+                  include: {
+                    currencies: true,
+                    users: true,
+                    movements: true
+                  }
+                },
                 categories: true,
                 operations: true
               },
