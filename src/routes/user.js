@@ -73,6 +73,9 @@ router.get('/', userExtractor, async (req, res) => {
                 accounts: true,
                 categories: true,
                 operations: true
+              },
+              orderBy: {
+                date: 'desc'
               }
             }
           }
