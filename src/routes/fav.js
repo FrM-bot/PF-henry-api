@@ -12,9 +12,13 @@ router.get('/:id', async (req, res) => {
       },
       select: {
         Fav: true
+
       }
     })
-    res.json(favourites)
+    const newFavourites = await Promise.all(favourites.Fav.map(async (favourite) => {
+      return await prisma.user.findUnique({ where: { id: favourite.friendID } })
+    }))
+    res.json(newFavourites)
   } catch (error) {
     console.log(error)
   }
