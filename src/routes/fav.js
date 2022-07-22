@@ -3,8 +3,8 @@ import { PrismaClient } from '@prisma/client'
 const prisma = new PrismaClient()
 const router = Router()
 
-router.get('/', async (req, res) => {
-  const { id } = req.body
+router.get('/:id', async (req, res) => {
+  const { id } = req.params
   try {
     const favourites = await prisma.user.findUnique({
       where: {
@@ -20,7 +20,7 @@ router.get('/', async (req, res) => {
   }
 })
 
-router.post('/find', async (req, res) => {
+router.post('/createFavourites', async (req, res) => {
   const { id, friendID } = req.body
   try {
     const findUser = await prisma.fav.create({
