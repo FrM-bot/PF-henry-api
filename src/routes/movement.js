@@ -129,6 +129,9 @@ router.post('/', async (req, res) => {
       },
       include: {
         movements: {
+          orderBy: {
+            date: 'desc'
+          },
           select: {
             date: true,
             amount: true,
