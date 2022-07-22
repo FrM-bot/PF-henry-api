@@ -10,7 +10,7 @@ router.post('/make_a_movement', async (req, res) => {
       cvu: cvuMain
     }
   })
-  if (mainAcc.cvu < amount) res.status(400).json({ msg: 'Your balance is less than necessary' })
+  if (mainAcc.cvu < amount) return res.status(400).json({ msg: 'Your balance is less than necessary' })
   try {
     const updateMainAcc = await prisma.account.update({
       where: {
