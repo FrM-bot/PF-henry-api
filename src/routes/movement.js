@@ -119,7 +119,7 @@ router.post('/make_a_movement', async (req, res) => {
   }
 })
 
-router.get('/', async (req, res) => {
+router.post('/', async (req, res) => {
   const { cvu } = req.body
   try {
     const accountMovs = await prisma.account.findUnique({
