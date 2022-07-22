@@ -3,8 +3,8 @@ import { PrismaClient } from '@prisma/client'
 const prisma = new PrismaClient()
 const router = Router()
 
-router.get('/', async (req, res) => {
-  const { id } = req.body
+router.get('/:id', async (req, res) => {
+  const { id } = req.params
   try {
     const favourites = await prisma.user.findUnique({
       where: {
@@ -12,15 +12,19 @@ router.get('/', async (req, res) => {
       },
       select: {
         Fav: true
+
       }
     })
-    res.json(favourites)
+    const newFavourites = await Promise.all(favourites.Fav.map(async (favourite) => {
+      return await prisma.user.findUnique({ where: { id: favourite.friendID } })
+    }))
+    res.json(newFavourites)
   } catch (error) {
     console.log(error)
   }
 })
 
-router.post('/find', async (req, res) => {
+router.post('/createFavourites', async (req, res) => {
   const { id, friendID } = req.body
   try {
     const findUser = await prisma.fav.create({
