@@ -58,7 +58,7 @@ router.post('/signin', async (req, res) => {
 })
 
 router.get('/', userExtractor, async (req, res) => {
-  console.log(req.userToken)
+  // console.log(req.userToken)
   const id = req.userToken
   try {
     const data = await prisma.user.findUnique({
@@ -66,12 +66,37 @@ router.get('/', userExtractor, async (req, res) => {
         id
       },
       include: {
-        accounts: true,
+        accounts: {
+          include: {
+            movements: {
+              include: {
+                accounts: true,
+                categories: true,
+                operations: true
+              }
+            }
+          }
+        },
         Fav: true
       }
     })
     res.json(data)
   } catch (error) {
+    res.status(404).json(error)
+  }
+})
+
+router.get('/users', async (req, res) => {
+  const { id } = req.body
+  try {
+    const data = await prisma.user.findUnique({
+      where: {
+        id
+      }
+    })
+    res.json(data)
+  } catch (error) {
+    console.error(error)
     res.status(404).json(error)
   }
 })

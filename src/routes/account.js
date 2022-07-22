@@ -4,8 +4,10 @@ const prisma = new PrismaClient()
 const router = Router()
 
 router.post('/', async (req, res) => {
-  const { cvu, email, currency } = req.body
+  const { DNI, email, currency } = req.body
   try {
+    const cvuPart = `${Math.floor(Math.random() * 10000000000000)}`
+    const cvu = DNI + cvuPart
     const newAccount = await prisma.account.create({
       data: {
         cvu,
@@ -24,9 +26,25 @@ router.post('/', async (req, res) => {
         }
       }
     })
+    console.log(newAccount)
     res.status(200).json(newAccount)
   } catch (error) {
+    console.log(error)
     res.status(400).json({ msg: "Can't create the account." })
+  }
+})
+
+router.get('/', async (req, res) => {
+  const { cvu } = req.body
+  try {
+    const acc = await prisma.account.findUnique({
+      where: {
+        cvu
+      }
+    })
+    res.status(200).json(acc)
+  } catch (error) {
+
   }
 })
 
