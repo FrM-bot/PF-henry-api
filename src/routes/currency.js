@@ -9,6 +9,7 @@ router.get('/crypto', async (req, res) => {
     const data = getCryptoData.data
     const crypts = data.map((crypt) => {
       return {
+        id: crypt.id,
         name: crypt.name,
         image: crypt.image,
         symbol: crypt.symbol,
@@ -19,6 +20,17 @@ router.get('/crypto', async (req, res) => {
       }
     })
     res.json(crypts)
+  } catch (error) {
+    console.error(error)
+  }
+})
+
+router.get('/:idCrypto', async (req, res) => {
+  try {
+    const id = req.params.idCrypto
+    const getDetailsCrypto = await axios.get(`https://api.coingecko.com/api/v3/coins/${id}`)
+    const data = getDetailsCrypto.data
+    res.json(data)
   } catch (error) {
     console.error(error)
   }
