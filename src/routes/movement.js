@@ -36,6 +36,7 @@ router.post('/make_a_movement', async (req, res) => {
       data: {
         amount,
         receipt: true,
+        balance: mainAcc.balance - amount,
         destiny: cvuD,
         comment,
         accounts: {
