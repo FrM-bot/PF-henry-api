@@ -5,6 +5,7 @@ import jwt from 'jsonwebtoken'
 import userExtractor from '../middlewares/userExtractor.js'
 import { upload } from '../cloudinaryUpload.js'
 import fs from 'fs/promises'
+import { v2 as cloudinary } from 'cloudinary'
 const prisma = new PrismaClient()
 
 const router = Router()
@@ -83,6 +84,9 @@ const SignInController = async (req, res) => {
         id: userValidate.id
       }
     })
+    await cloudinary.uploader.destroy(userValidate.publicID)
+    await cloudinary.uploader.destroy(userValidate.publicIDRev)
+
     res.json(newUser).status(200)
   } catch (error) {
     res.json({ error })
