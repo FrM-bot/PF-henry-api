@@ -7,6 +7,23 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model NewUser {
+  id          String    @id @default(uuid())
+  name        String
+  lastname    String
+  dni         String    @default("")
+  email       String    @unique
+  username    String    @unique
+  password    String
+  profilepic  String
+  Validate    Boolean   @default(false)
+  googleID    String?   @unique
+  imgURL      String
+  publicID    String
+  imgURLRev   String
+  publicIDRev String
+}
+
 model User {
   id          String    @id @default(uuid())
   name        String
@@ -21,7 +38,8 @@ model User {
   googleID    String?   @unique
   isAdmin     Boolean   @default(false)
   accounts    Account[]
-  Fav         Fav[]
+  Fav         Fav[]   
+  isAdmin     Boolean   @default(false)
 }
 
 model Fav {
