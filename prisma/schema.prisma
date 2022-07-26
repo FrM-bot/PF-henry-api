@@ -8,16 +8,16 @@ datasource db {
 }
 
 model NewUser {
-  id          String    @id @default(uuid())
+  id          String  @id @default(uuid())
   name        String
   lastname    String
-  dni         String    @default("")
-  email       String    @unique
-  username    String    @unique
+  dni         String  @default("")
+  email       String  @unique
+  username    String  @unique
   password    String
   profilepic  String
-  Validate    Boolean   @default(false)
-  googleID    String?   @unique
+  Validate    Boolean @default(false)
+  googleID    String? @unique
   imgURL      String
   publicID    String
   imgURLRev   String
@@ -36,9 +36,9 @@ model User {
   Validate    Boolean   @default(true)
   accountsIDs String[]
   googleID    String?   @unique
-  accounts    Account[]
-  Fav         Fav[]   
   isAdmin     Boolean   @default(false)
+  accounts    Account[]
+  Fav         Fav[]
 }
 
 model Fav {
@@ -80,6 +80,8 @@ model Movement {
   destiny       String    @default("Without destiny")
   sentBy        String    @default("Not sent")
   currencyId    String
+  comment       String?
+  balance       Float     @default(0.0)
   accounts      Account   @relation(fields: [accountsIDs], references: [id])
   categories    Category  @relation(fields: [categoriesIDs], references: [id])
   currencies    Currency  @relation(fields: [currencyId], references: [id])
