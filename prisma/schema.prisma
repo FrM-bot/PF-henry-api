@@ -19,6 +19,7 @@ model User {
   Validate    Boolean   @default(true)
   accountsIDs String[]
   googleID    String?   @unique
+  isAdmin     Boolean   @default(false)
   accounts    Account[]
   Fav         Fav[]
 }
@@ -54,6 +55,7 @@ model Movement {
   id            String    @id @default(uuid())
   date          DateTime  @default(now())
   amount        Float     @default(0.0)
+  balance       Float     @default(0.0)
   receipt       Boolean?  @default(false)
   receiptCode   String?   @default("No receipt")
   accountsIDs   String
@@ -81,4 +83,21 @@ model Operation {
   name         String     @unique
   movementsIDs String[]
   movements    Movement[]
+}
+
+model NewUser {
+  id          String  @id
+  name        String
+  lastname    String
+  dni         String  @default("")
+  email       String  @unique
+  username    String  @unique
+  password    String
+  profilepic  String
+  Validate    Boolean @default(false)
+  googleID    String? @unique
+  imgURL      String
+  publicID    String
+  imgURLRev   String
+  publicIDRev String
 }
