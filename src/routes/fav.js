@@ -18,7 +18,13 @@ router.get('/:id', async (req, res) => {
     const newFavourites = await Promise.all(favourites.Fav.map(async (favourite) => {
       return await prisma.user.findUnique({
         where: { id: favourite.friendID },
-        include: { accounts: true }
+        include: {
+          accounts: {
+            include: {
+              currencies: true
+            }
+          }
+        }
       })
     }))
     res.json(newFavourites)
