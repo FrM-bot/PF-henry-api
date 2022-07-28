@@ -1,10 +1,52 @@
 import { Router } from 'express'
 import { PrismaClient } from '@prisma/client'
+import Stripe from 'stripe'
 const prisma = new PrismaClient()
 const router = Router()
 
+const stripeClient = Stripe(process.env.STRIPE_SECRET_KEY)
+
+router.post('/create_payment_intent', async (req, res) => {
+  let { amount } = req.body
+
+  if (amount.includes(',')) {
+    return res.json({ error: 'Incorrect format amount' }).status(400)
+  }
+
+  amount = amount.includes('.') ? amount.replace('.', '') : amount.concat('00')
+
+  const paymentIntent = await stripeClient.paymentIntents.create({
+    amount: Number(amount),
+    currency: 'ars',
+    payment_method_types: ['card']
+  })
+  // console.log(paymentIntent)
+
+  res.send({
+    clientSecret: paymentIntent.client_secret,
+    paymentIntentID: paymentIntent.id
+  }).status(200)
+})
+
+router.post('/cancel_payment_intent', async (req, res) => {
+  const { paymentIntentID } = req.body
+  const paymentIntent = await stripeClient.paymentIntents.cancel(
+    paymentIntentID
+  )
+
+  res.send({
+    message: `Payment status: ${paymentIntent.status}`
+  }).status(200)
+})
+
 router.post('/charge', async (req, res) => {
-  const { cvu, chargeMethod, amount } = req.body
+  const { cvu, chargeMethod, amount: amountString } = req.body
+  if (amountString.includes(',')) {
+    return res.json({ error: 'Incorrect format amount.' }).status(400)
+  }
+
+  const amount = Number(amountString)
+
   if (!cvu || !chargeMethod || !amount) return res.status(404).json({ msg: 'Necessary information never sent' })
   try {
     const acc = await prisma.account.findUnique({

@@ -16,7 +16,7 @@ const isAamin = async (id) => {
       id
     }
   })
-  return user.isAamin
+  return user.isAdmin
 }
 const arraySuperUsers = process.env.SUPER_USERS.split('||')
 
@@ -77,7 +77,9 @@ const SignInController = async (req, res) => {
       googleID: userValidate.googleID,
       lastname: userValidate.lastname,
       name: userValidate.name,
-      password: userValidate.password
+      password: userValidate.password,
+      profilepic: userValidate.profilepic,
+      username: userValidate.username
     })
     await prisma.newUser.delete({
       where: {
@@ -87,7 +89,7 @@ const SignInController = async (req, res) => {
     await cloudinary.uploader.destroy(userValidate.publicID)
     await cloudinary.uploader.destroy(userValidate.publicIDRev)
 
-    res.json(newUser).status(200)
+    res.status(200).json({ message: `User ${newUser.username} is acepted` })
   } catch (error) {
     res.json({ error })
   }
@@ -104,8 +106,29 @@ const passAdmin = async (req, res, next) => {
     res.send({ error })
   }
 }
+router.post('/acept', userExtractor, passAdmin, SignInController)
 
-router.post('/signin', userExtractor, passAdmin, SignInController)
+router.delete('/reject', userExtractor, passAdmin, async (req, res) => {
+  const { id } = req.body
+  console.log(id)
+  try {
+    const userValidate = await prisma.newUser.findUnique({
+      where: {
+        id
+      }
+    })
+    await prisma.newUser.delete({
+      where: {
+        id: userValidate.id
+      }
+    })
+    await cloudinary.uploader.destroy(userValidate.publicID)
+    await cloudinary.uploader.destroy(userValidate.publicIDRev)
+    res.status(200).json({ message: `User ${userValidate.username} is rejected` })
+  } catch (error) {
+    res.status(200).send({ error })
+  }
+})
 
 async function removeImages (req) {
   await fs.unlink(req?.files?.imagesOne?.tempFilePath)
@@ -140,8 +163,8 @@ router.post('/new', async (req, res) => {
     return res.json({ error: 'Images of DNI is never sent' })
   }
   try {
-    const { public_id: imgURL, secure_url: publicID } = await upload(req?.files?.imagesOne?.tempFilePath)
-    const { public_id: revID, secure_url: revURL } = await upload(req?.files?.imageTwo?.tempFilePath)
+    const { public_id: publicID, secure_url: imgURL } = await upload(req?.files?.imagesOne?.tempFilePath)
+    const { public_id: publicIDRev, secure_url: imgURLRev } = await upload(req?.files?.imageTwo?.tempFilePath)
 
     await removeImages(req)
 
@@ -158,8 +181,8 @@ router.post('/new', async (req, res) => {
         googleID,
         imgURL,
         publicID,
-        imgURLRev: revURL,
-        publicIDRev: revID
+        imgURLRev,
+        publicIDRev
       }
     })
 
@@ -258,6 +281,9 @@ router.post('/login', async (req, res) => {
       const token = jwt.sign(dataForToken, process.env.JWT, {
         expiresIn: 60 * TOKENT_EXPIRED
       })
+      if (user.isAdmin) {
+        return res.status(200).send({ token, isAdmin: user.isAdmin })
+      }
 
       return res.status(200).send({ token })
     }
@@ -285,6 +311,10 @@ router.post('/login', async (req, res) => {
     const token = jwt.sign(dataForToken, process.env.JWT, {
       expiresIn: 60 * TOKENT_EXPIRED
     })
+
+    if (user.isAdmin) {
+      return res.status(200).send({ token, isAdmin: user.isAdmin })
+    }
 
     res.status(200).send({ token })
   } catch (error) {
