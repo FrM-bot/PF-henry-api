@@ -40,6 +40,9 @@ router.get('/', async (req, res) => {
     const acc = await prisma.account.findUnique({
       where: {
         cvu
+      },
+      include: {
+        currencies: true
       }
     })
     res.status(200).json(acc)
