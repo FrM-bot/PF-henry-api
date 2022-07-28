@@ -10,7 +10,7 @@ const prisma = new PrismaClient()
 
 const router = Router()
 
-const isAamin = async (id) => {
+const isAdmin = async (id) => {
   const user = await prisma.user.findUnique({
     where: {
       id
@@ -98,7 +98,7 @@ const SignInController = async (req, res) => {
 const passAdmin = async (req, res, next) => {
   const id = req.userToken
   try {
-    if (!isAamin(id)) {
+    if (!isAdmin(id)) {
       res.status(401).json({ error: 'Not authorized' })
     }
     next()
@@ -197,9 +197,8 @@ router.get('/newUsers', userExtractor, async (req, res) => {
   const id = req.userToken
   console.log(id)
   try {
-    if (isAamin(id)) {
+    if (isAdmin(id)) {
       const newUsers = await prisma.newUser.findMany({})
-      console.log(newUsers)
       res.status(200).json(newUsers)
     }
   } catch (error) {
