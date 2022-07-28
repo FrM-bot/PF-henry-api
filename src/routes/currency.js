@@ -34,7 +34,7 @@ router.get('/:idCrypto', async (req, res) => {
     const data = getDetailsCrypto.data
     const data2 = getDateCrypto.data
 
-    res.json([data, data2])
+    res.json({ data, data2 })
   } catch (error) {
     console.error(error)
   }
@@ -102,7 +102,7 @@ router.get('/cryptodate/:idCrypto', async (req, res) => {
     const data5 = getDateJune.data.market_data.current_price.usd
     const data6 = getDateJuly.data.market_data.current_price.usd
 
-    res.json([data, data1, data2, data3, data4, data5, data6])
+    res.json({ data, data1, data2, data3, data4, data5, data6 })
   } catch (error) {
     console.error(error)
   }
