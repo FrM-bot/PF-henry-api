@@ -74,6 +74,7 @@ model Movement {
   amount        Float     @default(0.0)
   receipt       Boolean?  @default(false)
   receiptCode   String?   @default("No receipt")
+  chargeMethod  String?
   accountsIDs   String
   operationsIDs String
   categoriesIDs String

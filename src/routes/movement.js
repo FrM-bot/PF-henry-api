@@ -3,6 +3,88 @@ import { PrismaClient } from '@prisma/client'
 const prisma = new PrismaClient()
 const router = Router()
 
+router.post('/charge', async (req, res) => {
+  const { cvu, chargeMethod, amount } = req.body
+  if (!cvu || !chargeMethod || !amount) return res.status(404).json({ msg: 'Necessary information never sent' })
+  try {
+    const acc = await prisma.account.findUnique({
+      where: {
+        cvu
+      }
+    })
+    if (!acc) return res.status(400).json({ msg: "The account you want to charge doesn't exist" })
+    const newCharge = await prisma.movement.create({
+      data: {
+        amount,
+        chargeMethod,
+        balance: acc.balance + amount,
+        accounts: {
+          connect: {
+            cvu
+          }
+        },
+        currencies: {
+          connectOrCreate: {
+            where: {
+              name: 'Pesos'
+            },
+            create: {
+              name: 'Pesos'
+            }
+          }
+        },
+        operations: {
+          connectOrCreate: {
+            where: {
+              name: 'Charge'
+            },
+            create: {
+              name: 'Charge'
+            }
+          }
+        },
+        categories: {
+          connectOrCreate: {
+            where: {
+              name: 'Charge'
+            },
+            create: {
+              name: 'Charge'
+            }
+          }
+        }
+      }
+    })
+    if (newCharge) {
+      const updateAcc = await prisma.account.update({
+        where: {
+          cvu
+        },
+        data: {
+          balance: {
+            increment: amount
+          }
+        }
+      })
+      if (updateAcc) {
+        const updateMov = await prisma.movement.update({
+          where: {
+            id: newCharge.id
+          },
+          data: {
+            receipt: true
+          }
+        })
+        if (updateMov) return res.status(200).json({ msg: 'The charge was successfull', newCharge, updateAcc, updateMov })
+      }
+    }
+    return res.status(400).json({ msg: "Can't make the movement" })
+  } catch (error) {
+    console.log(error)
+    res.status(400).json({ msg: "Can't make this charge" })
+  }
+})
+
 router.post('/make_a_movement', async (req, res) => {
   const { cvuMain, amount, cvuD, currency, operation, category, comment } = req.body
   const mainAcc = await prisma.account.findUnique({
