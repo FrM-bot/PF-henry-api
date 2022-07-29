@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "cross-env NODE_ENV=development nodemon ./src/index.js",
-    "start": "cross-env NODE_ENV=production npx prisma generate && node ./src/index.js"
+    "start": "cross-env NODE_ENV=production npx prisma db pull && npx prisma generate && node ./src/index.js"
   },
   "keywords": [],
   "author": "",
