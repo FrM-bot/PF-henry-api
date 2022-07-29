@@ -1,26 +1,112 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "mongodb"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-model Bank {
-  id          String      @id @default(auto()) @db.ObjectId @map("_id")
-  name        String      @unique
-  users       User[]      @relation(fields: [usersIDs], references: [id])
-  usersIDs    String[]    @db.ObjectId
+model NewUser {
+  id          String  @id @default(uuid())
+  name        String
+  lastname    String
+  dni         String  @default("")
+  email       String  @unique
+  username    String  @unique
+  password    String
+  profilepic  String
+  Validate    Boolean @default(false)
+  googleID    String? @unique
+  imgURL      String
+  publicID    String
+  imgURLRev   String
+  publicIDRev String
 }
 
 model User {
-  id          String      @id @default(auto()) @db.ObjectId @map("_id")
-  username    String      @unique
-  amount      Float       @default(0.0)
-  banks       Bank[]      @relation(fields: [banksIDs], references: [id])
-  banksIDs    String[]    @db.ObjectId
+  id          String    @id @default(uuid())
+  name        String
+  lastname    String
+  dni         String    @default("")
+  email       String    @unique
+  username    String    @unique
+  password    String
+  profilepic  String
+  Validate    Boolean   @default(true)
+  accountsIDs String[]
+  googleID    String?   @unique
+  isAdmin     Boolean   @default(false)
+  accounts    Account[]
+  Fav         Fav[]
+}
+
+model Fav {
+  id       String @id @default(uuid())
+  friendID String
+  userID   String
+  User     User   @relation(fields: [userID], references: [id])
+}
+
+model Account {
+  id            String     @id @default(uuid())
+  cvu           String     @unique
+  balance       Float      @default(0.0)
+  usersIDs      String
+  typeOfAccount String     @default("origin")
+  currencieID   String
+  currencies    Currency   @relation(fields: [currencieID], references: [id])
+  users         User       @relation(fields: [usersIDs], references: [id])
+  movements     Movement[]
+}
+
+model Currency {
+  id        String     @id @default(uuid())
+  name      String     @unique
+  price     Float      @default(0.0)
+  accounts  Account[]
+  movements Movement[]
+}
+
+model Movement {
+  id            String    @id @default(uuid())
+  date          DateTime  @default(now())
+  amount        Float     @default(0.0)
+  receipt       Boolean?  @default(false)
+  receiptCode   String?   @default("No receipt")
+  chargeMethod  String?
+  accountsIDs   String
+  operationsIDs String
+  categoriesIDs String
+  destiny       String    @default("Without destiny")
+  sentBy        String    @default("Not sent")
+  currencyId    String
+  comment       String?
+  balance       Float     @default(0.0)
+  accounts      Account   @relation(fields: [accountsIDs], references: [id])
+  categories    Category  @relation(fields: [categoriesIDs], references: [id])
+  currencies    Currency  @relation(fields: [currencyId], references: [id])
+  operations    Operation @relation(fields: [operationsIDs], references: [id])
+}
+
+model Category {
+  id           String     @id @default(uuid())
+  name         String     @unique
+  movementsIDs String[]
+  movements    Movement[]
+}
+
+model Operation {
+  id           String     @id @default(uuid())
+  name         String     @unique
+  movementsIDs String[]
+  movements    Movement[]
+}
+
+model Rating {
+  id            String    @id @default(uuid())
+  date          DateTime  @default(now())
+  rate          Int       @default(1)
+  comment       String
+  reported      Boolean   @default(false)
 }
