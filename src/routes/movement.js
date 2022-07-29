@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import { PrismaClient } from '@prisma/client'
 import Stripe from 'stripe'
+import userExtractor from '../middlewares/userExtractor.js'
 const prisma = new PrismaClient()
 const router = Router()
 
