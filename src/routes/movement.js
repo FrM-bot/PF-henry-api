@@ -264,7 +264,8 @@ router.post('/', async (req, res) => {
             sentBy: true,
             currencies: true,
             categories: true,
-            operations: true
+            operations: true,
+            balance: true
           }
         }
       }
