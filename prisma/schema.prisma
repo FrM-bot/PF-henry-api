@@ -84,7 +84,6 @@ model Movement {
   currencyId    String
   comment       String?
   balance       Float     @default(0.0)
-  chargeMethod  String?
   accounts      Account   @relation(fields: [accountsIDs], references: [id])
   categories    Category  @relation(fields: [categoriesIDs], references: [id])
   currencies    Currency  @relation(fields: [currencyId], references: [id])
