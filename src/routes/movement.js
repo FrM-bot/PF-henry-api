@@ -6,7 +6,7 @@ const router = Router()
 
 const stripeClient = Stripe(process.env.STRIPE_SECRET_KEY)
 
-router.post('/create_payment_intent', async (req, res) => {
+router.post('/create_payment_intent', userExtractor, async (req, res) => {
   let { amount } = req.body
 
   if (amount.includes(',')) {
@@ -28,7 +28,7 @@ router.post('/create_payment_intent', async (req, res) => {
   }).status(200)
 })
 
-router.post('/cancel_payment_intent', async (req, res) => {
+router.post('/cancel_payment_intent', userExtractor, async (req, res) => {
   const { paymentIntentID } = req.body
   const paymentIntent = await stripeClient.paymentIntents.cancel(
     paymentIntentID
@@ -39,7 +39,7 @@ router.post('/cancel_payment_intent', async (req, res) => {
   }).status(200)
 })
 
-router.post('/charge', async (req, res) => {
+router.post('/charge', userExtractor, async (req, res) => {
   const { cvu, chargeMethod, amount: amountString } = req.body
   if (amountString.includes(',')) {
     return res.json({ error: 'Incorrect format amount.' }).status(400)
@@ -127,7 +127,7 @@ router.post('/charge', async (req, res) => {
   }
 })
 
-router.post('/make_a_movement', async (req, res) => {
+router.post('/make_a_movement', userExtractor, async (req, res) => {
   const { cvuMain, amount, cvuD, currency, operation, category, comment } = req.body
   const mainAcc = await prisma.account.findUnique({
     where: {
