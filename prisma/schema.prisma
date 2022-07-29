@@ -39,7 +39,6 @@ model User {
   isAdmin     Boolean   @default(false)
   accounts    Account[]
   Fav         Fav[]
-  ratings     Rating[]
 }
 
 model Fav {
@@ -107,6 +106,7 @@ model Operation {
 model Rating {
   id            String    @id @default(uuid())
   date          DateTime  @default(now())
-  users         User      @relation(fields: [usersIDs], references: [id])
-  usersIDs      String
+  rate          Int       @default(1)
+  comment       String
+  reported      Boolean   @default(false)
 }
