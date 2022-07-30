@@ -102,3 +102,11 @@ model Operation {
   movementsIDs String[]
   movements    Movement[]
 }
+
+model Rating {
+  id            String    @id @default(uuid())
+  date          DateTime  @default(now())
+  rate          Int       @default(1)
+  comment       String
+  reported      Boolean   @default(false)
+}
