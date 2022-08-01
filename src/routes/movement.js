@@ -267,7 +267,7 @@ router.post('/make_a_movement', userExtractor, async (req, res) => {
         }
       }
     })
-    await sendMail(cvuMain, amount, cvuD, user.email)
+    // await sendMail(cvuMain, amount, cvuD, user.email)
     res.status(200).json({ newMovement, newMovementDestiny, updateMainAcc, updateDestinyAcc })
   } catch (error) {
     console.log(error)
