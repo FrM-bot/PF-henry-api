@@ -5,3 +5,7 @@ export const upload = async (filePath) => {
     folder: 'images'
   })
 }
+
+export const destroy = async (publicID) => {
+  return cloudinary.uploader.destroy(publicID)
+}

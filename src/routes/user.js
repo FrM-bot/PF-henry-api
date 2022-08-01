@@ -3,9 +3,9 @@ import { PrismaClient } from '@prisma/client'
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 import userExtractor from '../middlewares/userExtractor.js'
-import { upload } from '../cloudinaryUpload.js'
+import { upload, destroy } from '../cloudinaryUpload.js'
 import fs from 'fs/promises'
-import { v2 as cloudinary } from 'cloudinary'
+
 const prisma = new PrismaClient()
 
 const router = Router()
@@ -86,8 +86,8 @@ const SignInController = async (req, res) => {
         id: userValidate.id
       }
     })
-    await cloudinary.uploader.destroy(userValidate.publicID)
-    await cloudinary.uploader.destroy(userValidate.publicIDRev)
+    await destroy(userValidate.publicID)
+    await destroy(userValidate.publicIDRev)
 
     res.status(200).json({ message: `User ${newUser.username} is acepted` })
   } catch (error) {
@@ -122,8 +122,8 @@ router.delete('/reject', userExtractor, passAdmin, async (req, res) => {
         id: userValidate.id
       }
     })
-    await cloudinary.uploader.destroy(userValidate.publicID)
-    await cloudinary.uploader.destroy(userValidate.publicIDRev)
+    await destroy(userValidate.publicID)
+    await destroy(userValidate.publicIDRev)
     res.status(200).json({ message: `User ${userValidate.username} is rejected` })
   } catch (error) {
     res.status(200).send({ error })
@@ -193,14 +193,10 @@ router.post('/new', async (req, res) => {
   }
 })
 
-router.get('/newUsers', userExtractor, async (req, res) => {
-  const id = req.userToken
-  console.log(id)
+router.get('/newUsers', userExtractor, passAdmin, async (req, res) => {
   try {
-    if (isAdmin(id)) {
-      const newUsers = await prisma.newUser.findMany({})
-      res.status(200).json(newUsers)
-    }
+    const newUsers = await prisma.newUser.findMany({})
+    res.status(200).json(newUsers)
   } catch (error) {
     res.send({ error })
   }
@@ -265,7 +261,6 @@ router.post('/login', async (req, res) => {
   let user = {}
 
   const TOKENT_EXPIRED = 60
-
   try {
     if (googleID) {
       user = await prisma.user.findUnique({
@@ -273,6 +268,11 @@ router.post('/login', async (req, res) => {
           googleID
         }
       })
+
+      if (user.isBan) {
+        return res.send({ message: 'You were banned from the platform.' }).status(401)
+      }
+
       const dataForToken = {
         userID: user.id
       }
@@ -294,7 +294,11 @@ router.post('/login', async (req, res) => {
     })
 
     if (!user) {
-      return res.status(400).send({ error: 'User not found' })
+      return res.status(404).send({ error: 'User not found' })
+    }
+
+    if (user.isBan) {
+      return res.send({ message: 'You were banned from the platform.' }).status(401)
     }
 
     const passwordIs = user ? (await bcrypt.compare(password, user.password)) : (false)
@@ -317,7 +321,74 @@ router.post('/login', async (req, res) => {
 
     res.status(200).send({ token })
   } catch (error) {
+    console.log(error)
     res.status(401).json({ error })
+  }
+})
+
+router.post('/ban', userExtractor, passAdmin, async (req, res) => {
+  const { id, isBan } = req.body
+  try {
+    console.log(id, typeof isBan)
+    const userBanned = await prisma.user.update({
+      where: {
+        id
+      },
+      data: {
+        isBan
+      },
+      select: {
+        email: true,
+        dni: true,
+        id: true,
+        profilepic: true,
+        name: true,
+        lastname: true,
+        isBan: true,
+        username: true
+      }
+    })
+    res.send(userBanned)
+  } catch (error) {
+    res.send({ error })
+  }
+})
+
+router.post('/search', userExtractor, passAdmin, async (req, res) => {
+  const { username } = req.body
+
+  try {
+    const user = await prisma.user.findMany({
+      where: {
+        OR: [
+          {
+            username: {
+              contains: username
+            }
+          },
+          {
+            email: {
+              contains: username
+            }
+          }
+        ]
+      },
+      select: {
+        email: true,
+        dni: true,
+        id: true,
+        profilepic: true,
+        name: true,
+        lastname: true,
+        isBan: true,
+        username: true
+      }
+    })
+
+    res.json(user)
+  } catch (error) {
+    console.log(error)
+    res.send({ error })
   }
 })
 

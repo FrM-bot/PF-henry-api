@@ -37,6 +37,7 @@ model User {
   accountsIDs String[]
   googleID    String?   @unique
   isAdmin     Boolean   @default(false)
+  isBan       Boolean   @default(false)
   accounts    Account[]
   Fav         Fav[]
 }
@@ -74,7 +75,6 @@ model Movement {
   amount        Float     @default(0.0)
   receipt       Boolean?  @default(false)
   receiptCode   String?   @default("No receipt")
-  chargeMethod  String?
   accountsIDs   String
   operationsIDs String
   categoriesIDs String
@@ -83,6 +83,7 @@ model Movement {
   currencyId    String
   comment       String?
   balance       Float     @default(0.0)
+  chargeMethod  String?
   accounts      Account   @relation(fields: [accountsIDs], references: [id])
   categories    Category  @relation(fields: [categoriesIDs], references: [id])
   currencies    Currency  @relation(fields: [currencyId], references: [id])
@@ -104,9 +105,9 @@ model Operation {
 }
 
 model Rating {
-  id            String    @id @default(uuid())
-  date          DateTime  @default(now())
-  rate          Int       @default(1)
-  comment       String
-  reported      Boolean   @default(false)
+  id       String   @id @default(uuid())
+  date     DateTime @default(now())
+  comment  String
+  rate     Int      @default(1)
+  reported Boolean  @default(false)
 }
