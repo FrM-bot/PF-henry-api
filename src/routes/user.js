@@ -3,9 +3,9 @@ import { PrismaClient } from '@prisma/client'
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 import userExtractor from '../middlewares/userExtractor.js'
-import { upload } from '../cloudinaryUpload.js'
+import { upload, destroy } from '../cloudinaryUpload.js'
 import fs from 'fs/promises'
-import { v2 as cloudinary } from 'cloudinary'
+
 const prisma = new PrismaClient()
 
 const router = Router()
@@ -86,8 +86,8 @@ const SignInController = async (req, res) => {
         id: userValidate.id
       }
     })
-    await cloudinary.uploader.destroy(userValidate.publicID)
-    await cloudinary.uploader.destroy(userValidate.publicIDRev)
+    await destroy(userValidate.publicID)
+    await destroy(userValidate.publicIDRev)
 
     res.status(200).json({ message: `User ${newUser.username} is acepted` })
   } catch (error) {
@@ -122,8 +122,8 @@ router.delete('/reject', userExtractor, passAdmin, async (req, res) => {
         id: userValidate.id
       }
     })
-    await cloudinary.uploader.destroy(userValidate.publicID)
-    await cloudinary.uploader.destroy(userValidate.publicIDRev)
+    await destroy(userValidate.publicID)
+    await destroy(userValidate.publicIDRev)
     res.status(200).json({ message: `User ${userValidate.username} is rejected` })
   } catch (error) {
     res.status(200).send({ error })
@@ -268,6 +268,11 @@ router.post('/login', async (req, res) => {
           googleID
         }
       })
+
+      if (user.isBan) {
+        return res.send({ message: 'You were banned from the platform.' }).status(401)
+      }
+
       const dataForToken = {
         userID: user.id
       }
@@ -334,11 +339,16 @@ router.post('/ban', userExtractor, passAdmin, async (req, res) => {
       },
       select: {
         email: true,
-        username: true,
-        isBan: true
+        dni: true,
+        id: true,
+        profilepic: true,
+        name: true,
+        lastname: true,
+        isBan: true,
+        username: true
       }
     })
-    res.send({ userBanned })
+    res.send(userBanned)
   } catch (error) {
     res.send({ error })
   }
@@ -370,7 +380,8 @@ router.post('/search', userExtractor, passAdmin, async (req, res) => {
         profilepic: true,
         name: true,
         lastname: true,
-        isBan: true
+        isBan: true,
+        username: true
       }
     })
 
