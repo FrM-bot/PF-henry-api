@@ -353,7 +353,36 @@ router.post('/ban', userExtractor, passAdmin, async (req, res) => {
     res.send({ error })
   }
 })
-
+router.put('/useredit', userExtractor, async (req, res) => {
+  const { username, profilepic, password } = req.body
+  const id = req.userToken
+  let hashedPass = ''
+  // const passwordIs = id ? (await bcrypt.compare(password, id.password)) : (false)
+  if (password) {
+    hashedPass = await bcrypt.hash(password, 10)
+  }
+  try {
+    const user = await prisma.user.findUnique({
+      where: {
+        id
+      }
+    })
+    console.log(user)
+    const data = await prisma.user.update({
+      where: {
+        id
+      },
+      data: {
+        username: username || user.username,
+        password: hashedPass || user.password,
+        profilepic: profilepic || user.profilepic
+      }
+    })
+    res.json(data)
+  } catch (error) {
+    res.status(401).json(error)
+  }
+})
 router.post('/search', userExtractor, passAdmin, async (req, res) => {
   const { username } = req.body
 
