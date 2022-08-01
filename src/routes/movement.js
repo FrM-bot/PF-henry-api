@@ -216,7 +216,14 @@ router.post('/make_a_movement', userExtractor, async (req, res) => {
           }
         },
         categories: {
-          connect: { name: category }
+          connectOrCreate: {
+            where: {
+              name: category
+            },
+            create: {
+              name: category
+            }
+          }
         }
       }
     })
