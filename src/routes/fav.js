@@ -77,7 +77,7 @@ router.post('/createFavourites', async (req, res) => {
           include: { accounts: true }
         })
       }))
-      res.status(200).json(newFavourites, findUser)
+      res.status(200).json(newFavourites)
     } catch (error) {
       console.error(error)
     }
@@ -134,8 +134,9 @@ router.post('/createFavourites', async (req, res) => {
   }
 })
 
-router.delete('/delete', async (req, res) => {
-  const { id } = req.body
+router.delete('/:id', async (req, res) => {
+  const { id } = req.params
+  console.log(id)
   try {
     const favInfo = await prisma.fav.findMany({
       where: {
