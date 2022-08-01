@@ -223,14 +223,7 @@ router.post('/make_a_movement', userExtractor, async (req, res) => {
           }
         },
         categories: {
-          connectOrCreate: {
-            where: {
-              name: category
-            },
-            create: {
-              name: category
-            }
-          }
+          connect: { name: currency }
         }
       }
     })
