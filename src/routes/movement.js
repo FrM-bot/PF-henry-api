@@ -117,14 +117,7 @@ router.post('/charge', userExtractor, async (req, res) => {
           }
         },
         categories: {
-          connectOrCreate: {
-            where: {
-              name: 'Charge'
-            },
-            create: {
-              name: 'Charge'
-            }
-          }
+          connect: { name: 'Charge' }
         }
       }
     })
@@ -223,7 +216,7 @@ router.post('/make_a_movement', userExtractor, async (req, res) => {
           }
         },
         categories: {
-          connect: { name: currency }
+          connect: { name: category }
         }
       }
     })

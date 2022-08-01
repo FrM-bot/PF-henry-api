@@ -20,14 +20,15 @@ router.get('/', async (req, res) => {
 router.post('/', async (req, res) => {
   const data = await prisma.category.createMany({
     data: [
-      { name: 'transport' },
-      { name: 'shopping' },
-      { name: 'subscriptions' },
-      { name: 'groceries' },
-      { name: 'travels' },
-      { name: 'services' },
-      { name: 'entertainment' },
-      { name: 'selfcare' }
+      { name: 'Transport' },
+      { name: 'Shopping' },
+      { name: 'Subscriptions' },
+      { name: 'Groceries' },
+      { name: 'Travels' },
+      { name: 'Services' },
+      { name: 'Entertainment' },
+      { name: 'Charge' },
+      { name: 'Selfcare' }
     ]
   })
   res.json(data)
