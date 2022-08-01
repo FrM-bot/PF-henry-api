@@ -153,6 +153,7 @@ router.post('/charge', userExtractor, async (req, res) => {
 
 router.post('/make_a_movement', userExtractor, async (req, res) => {
   const { cvuMain, amount, cvuD, currency, operation, category, comment } = req.body
+  console.log({ cvuMain, amount, cvuD, currency, operation, category, comment })
   const mainAcc = await prisma.account.findUnique({
     where: {
       cvu: cvuMain
@@ -216,8 +217,18 @@ router.post('/make_a_movement', userExtractor, async (req, res) => {
           }
         },
         categories: {
-          connect: { name: category }
+          connectOrCreate: {
+            where: {
+              name: category
+            },
+            create: {
+              name: category
+            }
+          }
         }
+        // categories: {
+        //   connect: { name: category }
+        // }
       }
     })
     const newMovementDestiny = await prisma.movement.create({
@@ -260,7 +271,7 @@ router.post('/make_a_movement', userExtractor, async (req, res) => {
         }
       }
     })
-    await sendMail(cvuMain, amount, cvuD, user.email)
+    // await sendMail(cvuMain, amount, cvuD, user.email)
     res.status(200).json({ newMovement, newMovementDestiny, updateMainAcc, updateDestinyAcc })
   } catch (error) {
     console.log(error)
