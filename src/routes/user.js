@@ -6,9 +6,41 @@ import userExtractor from '../middlewares/userExtractor.js'
 import { upload } from '../cloudinaryUpload.js'
 import fs from 'fs/promises'
 import { v2 as cloudinary } from 'cloudinary'
+import nodemailer from 'nodemailer'
 const prisma = new PrismaClient()
-
 const router = Router()
+
+async function sendMail (email) {
+  const transporter = nodemailer.createTransport({
+    // host: 'smtp.ethereal.email',
+    // port: 587,
+    // secure: false, // true for 465, false for other ports
+    service: 'hotmail',
+    auth: {
+      user: 'wallet.pfhenry@outlook.com', // generated ethereal user
+      pass: 'walletHenry' // generated ethereal password
+    },
+    tls: {
+      rejectUnauthorized: false
+    }
+  })
+
+  transporter.verify(function (error, success) {
+    if (error) {
+      console.log(error)
+    } else {
+      console.log('Server is ready to take our messages')
+    }
+  })
+
+  const mail = await transporter.sendMail({
+    from: 'wallet.pfhenry@outlook.com', // sender address
+    to: `${email}`, // list of receivers
+    subject: 'Reset Password', // Subject line
+    // text: 'Hello world?', // plain text body
+    html: '<h2>Click to the link:  for reset the password.</h2>' // html body
+  })
+}
 
 const isAdmin = async (id) => {
   const user = await prisma.user.findUnique({
@@ -379,6 +411,27 @@ router.post('/search', userExtractor, passAdmin, async (req, res) => {
     console.log(error)
     res.send({ error })
   }
+})
+
+router.put('/reset-password', async (req, res) => {
+  const { email, password } = req.body
+  const hashedPass = await bcrypt.hash(password, 10)
+  try {
+    const user = await prisma.user.update({
+      where: {
+        email
+      },
+      data: {
+        password: hashedPass
+      }
+    })
+    res.json(user)
+  } catch (err) { console.error(err) }
+})
+
+router.post('/sendReset', async (req, res) => {
+  const { email } = req.body
+  await sendMail(email)
 })
 
 export default router
