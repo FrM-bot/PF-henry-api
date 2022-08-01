@@ -21,7 +21,7 @@ router.get('/crypto', async (req, res) => {
     })
     res.json(crypts)
   } catch (error) {
-    console.error(error)
+    console.error('fallo perrito')
   }
 })
 
@@ -36,14 +36,14 @@ router.get('/:idCrypto', async (req, res) => {
 
     res.json({ data, data2 })
   } catch (error) {
-    console.error(error)
+    console.error('fallo perrito')
   }
 })
 
 router.get('/dolarblue', async (req, res) => {
   try {
     const getCurrData = await axios.get('https://api-dolar-argentina.herokuapp.com/api/dolarblue')
-    const data = getCurrData.data
+    const data = await getCurrData.data
     const dolarBlue = {
       name: 'Dolar Blue',
       date: data.fecha,
