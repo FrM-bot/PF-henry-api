@@ -1,11 +1,41 @@
 import { Router } from 'express'
 import { PrismaClient } from '@prisma/client'
 import Stripe from 'stripe'
+import nodemailer from 'nodemailer'
 import userExtractor from '../middlewares/userExtractor.js'
 const prisma = new PrismaClient()
 const router = Router()
 
 const stripeClient = Stripe(process.env.STRIPE_SECRET_KEY)
+
+async function sendMail (cvu, amount, destinyCvu, email) {
+  const transporter = nodemailer.createTransport({
+    // host: 'smtp.ethereal.email',
+    // port: 587,
+    // secure: false, // true for 465, false for other ports
+    service: 'hotmail',
+    auth: {
+      user: 'wallet.pfhenry@outlook.com', // generated ethereal user
+      pass: 'walletHenry' // generated ethereal password
+    }
+  })
+
+  transporter.verify(function (error, success) {
+    if (error) {
+      console.log(error)
+    } else {
+      console.log('Server is ready to take our messages')
+    }
+  })
+
+  const mail = await transporter.sendMail({
+    from: 'wallet.pfhenry@outlook.com', // sender address
+    to: `${email}`, // list of receivers
+    subject: 'New Movement', // Subject line
+    // text: 'Hello world?', // plain text body
+    html: `<h2>You transfer $${amount} to ${destinyCvu} from your ${cvu} account</h2>` // html body
+  })
+}
 
 router.post('/create_payment_intent', userExtractor, async (req, res) => {
   let { amount } = req.body
@@ -135,6 +165,11 @@ router.post('/make_a_movement', userExtractor, async (req, res) => {
       cvu: cvuMain
     }
   })
+  const user = await prisma.user.findUnique({
+    where: {
+      id: mainAcc.usersIDs
+    }
+  })
   if (mainAcc.balance < amount) return res.status(400).json({ msg: 'Your balance is less than necessary' })
   try {
     const updateMainAcc = await prisma.account.update({
@@ -239,6 +274,7 @@ router.post('/make_a_movement', userExtractor, async (req, res) => {
         }
       }
     })
+    await sendMail(cvuMain, amount, cvuD, user.email)
     res.status(200).json({ newMovement, newMovementDestiny, updateMainAcc, updateDestinyAcc })
   } catch (error) {
     console.log(error)
