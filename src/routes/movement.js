@@ -76,7 +76,8 @@ router.post('/create_payment_intent', userExtractor, async (req, res) => {
       account
     }).status(200)
   } catch (error) {
-
+      console.error(error)
+      res.json({ error })
   }
 })
 
