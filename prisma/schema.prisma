@@ -33,6 +33,7 @@ model User {
   username    String    @unique
   password    String
   profilepic  String
+  profilepicID String?
   Validate    Boolean   @default(true)
   accountsIDs String[]
   googleID    String?   @unique
