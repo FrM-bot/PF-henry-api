@@ -23,7 +23,11 @@ router.post('/', async (req, res) => {
       { name: 'transport' },
       { name: 'shopping' },
       { name: 'subscriptions' },
-      { name: 'groceries' }
+      { name: 'groceries' },
+      { name: 'travels' },
+      { name: 'services' },
+      { name: 'entertainment' },
+      { name: 'selfcare' }
     ]
   })
   res.json(data)
