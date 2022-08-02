@@ -38,25 +38,46 @@ async function sendMail (cvu, amount, destinyCvu, email) {
 }
 
 router.post('/create_payment_intent', userExtractor, async (req, res) => {
-  let { amount } = req.body
+  let { amount, cvu } = req.body
 
   if (amount.includes(',')) {
-    return res.json({ error: 'Incorrect format amount' }).status(400)
+    return res.json({ error: 'Incorrect format amount' }).status(406)
   }
 
   amount = amount.includes('.') ? amount.replace('.', '') : amount.concat('00')
+  try {
+    const account = await prisma.account.findUnique({
+      where: {
+        cvu
+      },
+      include: {
+        users: {
+          select: {
+            dni: true,
+            username: true,
+            name: true,
+            lastname: true,
+            profilepic: true
+          }
+        }
+      }
+    })
+    if (!account) return res.status(400).json({ msg: "The account you want to charge doesn't exist" })
+    const paymentIntent = await stripeClient.paymentIntents.create({
+      amount: Number(amount),
+      currency: 'ars',
+      payment_method_types: ['card']
+    })
+    // console.log(paymentIntent)
 
-  const paymentIntent = await stripeClient.paymentIntents.create({
-    amount: Number(amount),
-    currency: 'ars',
-    payment_method_types: ['card']
-  })
-  // console.log(paymentIntent)
+    res.send({
+      clientSecret: paymentIntent.client_secret,
+      paymentIntentID: paymentIntent.id,
+      account
+    }).status(200)
+  } catch (error) {
 
-  res.send({
-    clientSecret: paymentIntent.client_secret,
-    paymentIntentID: paymentIntent.id
-  }).status(200)
+  }
 })
 
 router.post('/cancel_payment_intent', userExtractor, async (req, res) => {
@@ -73,7 +94,7 @@ router.post('/cancel_payment_intent', userExtractor, async (req, res) => {
 router.post('/charge', userExtractor, async (req, res) => {
   const { cvu, chargeMethod, amount: amountString } = req.body
   if (amountString.includes(',')) {
-    return res.json({ error: 'Incorrect format amount.' }).status(400)
+    return res.json({ error: 'Incorrect format amount.' }).status(406)
   }
 
   const amount = Number(amountString)
