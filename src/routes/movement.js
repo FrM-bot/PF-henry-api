@@ -38,25 +38,47 @@ async function sendMail (cvu, amount, destinyCvu, email) {
 }
 
 router.post('/create_payment_intent', userExtractor, async (req, res) => {
-  let { amount } = req.body
+  let { amount, cvu } = req.body
 
   if (amount.includes(',')) {
-    return res.json({ error: 'Incorrect format amount' }).status(400)
+    return res.json({ error: 'Incorrect format amount' }).status(406)
   }
 
   amount = amount.includes('.') ? amount.replace('.', '') : amount.concat('00')
+  try {
+    const account = await prisma.account.findUnique({
+      where: {
+        cvu
+      },
+      include: {
+        users: {
+          select: {
+            dni: true,
+            username: true,
+            name: true,
+            lastname: true,
+            profilepic: true
+          }
+        }
+      }
+    })
+    if (!account) return res.status(400).json({ msg: "The account you want to charge doesn't exist" })
+    const paymentIntent = await stripeClient.paymentIntents.create({
+      amount: Number(amount),
+      currency: 'ars',
+      payment_method_types: ['card']
+    })
+    // console.log(paymentIntent)
 
-  const paymentIntent = await stripeClient.paymentIntents.create({
-    amount: Number(amount),
-    currency: 'ars',
-    payment_method_types: ['card']
-  })
-  // console.log(paymentIntent)
-
-  res.send({
-    clientSecret: paymentIntent.client_secret,
-    paymentIntentID: paymentIntent.id
-  }).status(200)
+    res.send({
+      clientSecret: paymentIntent.client_secret,
+      paymentIntentID: paymentIntent.id,
+      account
+    }).status(200)
+  } catch (error) {
+      console.error(error)
+      res.json({ error })
+  }
 })
 
 router.post('/cancel_payment_intent', userExtractor, async (req, res) => {
@@ -73,7 +95,7 @@ router.post('/cancel_payment_intent', userExtractor, async (req, res) => {
 router.post('/charge', userExtractor, async (req, res) => {
   const { cvu, chargeMethod, amount: amountString } = req.body
   if (amountString.includes(',')) {
-    return res.json({ error: 'Incorrect format amount.' }).status(400)
+    return res.json({ error: 'Incorrect format amount.' }).status(406)
   }
 
   const amount = Number(amountString)
@@ -117,14 +139,7 @@ router.post('/charge', userExtractor, async (req, res) => {
           }
         },
         categories: {
-          connectOrCreate: {
-            where: {
-              name: 'Charge'
-            },
-            create: {
-              name: 'Charge'
-            }
-          }
+          connect: { name: 'Charge' }
         }
       }
     })
@@ -160,6 +175,7 @@ router.post('/charge', userExtractor, async (req, res) => {
 
 router.post('/make_a_movement', userExtractor, async (req, res) => {
   const { cvuMain, amount, cvuD, currency, operation, category, comment } = req.body
+  console.log({ cvuMain, amount, cvuD, currency, operation, category, comment })
   const mainAcc = await prisma.account.findUnique({
     where: {
       cvu: cvuMain
@@ -223,8 +239,18 @@ router.post('/make_a_movement', userExtractor, async (req, res) => {
           }
         },
         categories: {
-          connect: { name: currency }
+          connectOrCreate: {
+            where: {
+              name: category
+            },
+            create: {
+              name: category
+            }
+          }
         }
+        // categories: {
+        //   connect: { name: category }
+        // }
       }
     })
     const newMovementDestiny = await prisma.movement.create({
@@ -267,7 +293,7 @@ router.post('/make_a_movement', userExtractor, async (req, res) => {
         }
       }
     })
-    await sendMail(cvuMain, amount, cvuD, user.email)
+    // await sendMail(cvuMain, amount, cvuD, user.email)
     res.status(200).json({ newMovement, newMovementDestiny, updateMainAcc, updateDestinyAcc })
   } catch (error) {
     console.log(error)

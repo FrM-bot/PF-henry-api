@@ -68,7 +68,7 @@ const createUser = async ({ email, password, name, lastname, DNI, username, prof
         lastname,
         password,
         profilepic: profilepic || DEFAULT_PIC,
-        googleID: googleID || null,
+        googleID,
         isAdmin: arraySuperUsers.includes(email),
         accounts: {
           create: {
@@ -143,7 +143,6 @@ router.post('/acept', userExtractor, passAdmin, SignInController)
 
 router.delete('/reject', userExtractor, passAdmin, async (req, res) => {
   const { id } = req.body
-  console.log(id)
   try {
     const userValidate = await prisma.newUser.findUnique({
       where: {
@@ -163,45 +162,93 @@ router.delete('/reject', userExtractor, passAdmin, async (req, res) => {
   }
 })
 
-async function removeImages (req) {
-  await fs.unlink(req?.files?.imagesOne?.tempFilePath)
-  await fs.unlink(req?.files?.imageTwo?.tempFilePath)
+async function removeImagesToLocal (filesPaths) {
+  try {
+    for (const path of filesPaths) {
+      await fs.unlink(path)
+    }
+  } catch (error) {
+    console.error(error)
+  }
+}
+
+const existDataInBD = async (data, prop, dbName) => {
+  try {
+    const dataInDB = await prisma[dbName].findUnique({
+      where: {
+        [prop]: data
+      },
+      select: {
+        [prop]: true
+      }
+    })
+    return dataInDB || false
+  } catch (error) {
+    console.error(error)
+  }
 }
 
 router.post('/new', async (req, res) => {
-  const { email, password, name, lastname, DNI, username, profilepic, googleID } = req.body
-  const existUser = await prisma.user.findUnique({
-    where: {
-      email
-    }
-  })
-  if (existUser?.email) {
-    return res.status(401).send({ error: 'This email is already register.' })
-  }
-  if (arraySuperUsers.includes(email)) {
-    await removeImages(req)
-    const hashedPass = await bcrypt.hash(password, 10)
-    const newAdmin = await createUser({ email, DNI, googleID, lastname, name, password: hashedPass, profilepic, username })
-    return res.status(200).json(newAdmin)
-  }
+  const { email, password, name, lastname, DNI, profilepic, googleID, username } = req.body
+
   for (const property in req?.body) {
     if (property === 'profilepic' || property === 'googleID') {
       continue
     }
     if (!req?.body[property]) {
+      await removeImagesToLocal([req?.files?.imageTwo?.tempFilePath, req?.files?.imagesOne?.tempFilePath])
       return res.status(404).json({ msg: `Required info is never sent: ${property}` })
     }
   }
-  if (Object.values(req?.files).length !== 2) {
-    return res.json({ error: 'Images of DNI is never sent' })
-  }
+
   try {
+    let existUserEmail = await existDataInBD(email, 'email', 'user')
+
+    if (existUserEmail) {
+      await removeImagesToLocal([req?.files?.imageTwo?.tempFilePath, req?.files?.imagesOne?.tempFilePath])
+      return res.status(406).send({ message: `The email ${existUserEmail.email} is already register.` })
+    }
+
+    let existUserUsername = await existDataInBD(username, 'username', 'user')
+
+    if (existUserUsername) {
+      await removeImagesToLocal([req?.files?.imageTwo?.tempFilePath, req?.files?.imagesOne?.tempFilePath])
+      return res.status(406).send({ message: `The user ${existUserUsername.username} is already register.` })
+    }
+
+    existUserEmail = await existDataInBD(email, 'email', 'newUser')
+
+    if (existUserEmail) {
+      await removeImagesToLocal([req?.files?.imageTwo?.tempFilePath, req?.files?.imagesOne?.tempFilePath])
+      return res.status(406).send({ message: `The email ${existUserEmail.email} is already register.` })
+    }
+
+    existUserUsername = await existDataInBD(username, 'username', 'newUser')
+
+    if (existUserUsername) {
+      await removeImagesToLocal([req?.files?.imageTwo?.tempFilePath, req?.files?.imagesOne?.tempFilePath])
+      return res.status(406).send({ message: `The user ${existUserUsername.username} is already register.` })
+    }
+
+    if (arraySuperUsers.includes(email)) {
+      await removeImagesToLocal([req?.files?.imageTwo?.tempFilePath, req?.files?.imagesOne?.tempFilePath])
+      const hashedPass = await bcrypt.hash(password, 10)
+      const newAdmin = await createUser({ email, DNI, googleID, lastname, name, password: hashedPass, profilepic, username })
+      return res.status(200).json(newAdmin)
+    }
+
+    if (Object.values(req?.files).length !== 2) {
+      await removeImagesToLocal([req?.files?.imageTwo?.tempFilePath, req?.files?.imagesOne?.tempFilePath])
+
+      return res.json({ error: 'Images of DNI is never sent' })
+    }
     const { public_id: publicID, secure_url: imgURL } = await upload(req?.files?.imagesOne?.tempFilePath)
     const { public_id: publicIDRev, secure_url: imgURLRev } = await upload(req?.files?.imageTwo?.tempFilePath)
 
-    await removeImages(req)
+    await removeImagesToLocal([req?.files?.imageTwo?.tempFilePath, req?.files?.imagesOne?.tempFilePath])
 
     const hashedPass = await bcrypt.hash(password, 10)
+
     const newUser = await prisma.newUser.create({
       data: {
         email,
@@ -221,7 +268,8 @@ router.post('/new', async (req, res) => {
 
     res.status(201).json(newUser)
   } catch (error) {
-    console.log(error)
+    await removeImagesToLocal([req?.files?.imageTwo?.tempFilePath, req?.files?.imagesOne?.tempFilePath])
+    console.error(error)
     res.status(404).json({ msg: 'An error ocurred', error })
   }
 })
@@ -236,7 +284,6 @@ router.get('/newUsers', userExtractor, passAdmin, async (req, res) => {
 })
 
 router.get('/', userExtractor, async (req, res) => {
-  // console.log(req.userToken)
   const id = req.userToken
   try {
     const data = await prisma.user.findUnique({
@@ -283,7 +330,6 @@ router.get('/users', async (req, res) => {
     })
     res.json(data)
   } catch (error) {
-    console.error(error)
     res.status(404).json(error)
   }
 })
@@ -354,7 +400,6 @@ router.post('/login', async (req, res) => {
 
     res.status(200).send({ token })
   } catch (error) {
-    console.log(error)
     res.status(401).json({ error })
   }
 })
@@ -362,7 +407,6 @@ router.post('/login', async (req, res) => {
 router.post('/ban', userExtractor, passAdmin, async (req, res) => {
   const { id, isBan } = req.body
   try {
-    console.log(id, typeof isBan)
     const userBanned = await prisma.user.update({
       where: {
         id
@@ -386,7 +430,35 @@ router.post('/ban', userExtractor, passAdmin, async (req, res) => {
     res.send({ error })
   }
 })
-
+router.put('/useredit', userExtractor, async (req, res) => {
+  const { username, profilepic, password } = req.body
+  const id = req.userToken
+  let hashedPass = ''
+  // const passwordIs = id ? (await bcrypt.compare(password, id.password)) : (false)
+  if (password) {
+    hashedPass = await bcrypt.hash(password, 10)
+  }
+  try {
+    const user = await prisma.user.findUnique({
+      where: {
+        id
+      }
+    })
+    const data = await prisma.user.update({
+      where: {
+        id
+      },
+      data: {
+        username: username || user.username,
+        password: hashedPass || user.password,
+        profilepic: profilepic || user.profilepic
+      }
+    })
+    res.json(data)
+  } catch (error) {
+    res.status(401).json(error)
+  }
+})
 router.post('/search', userExtractor, passAdmin, async (req, res) => {
   const { username } = req.body
 
@@ -420,7 +492,6 @@ router.post('/search', userExtractor, passAdmin, async (req, res) => {
 
     res.json(user)
   } catch (error) {
-    console.log(error)
     res.send({ error })
   }
 })
