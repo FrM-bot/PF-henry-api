@@ -85,6 +85,7 @@ router.get('/riesgopais', async (req, res) => {
 })
 
 router.get('/cryptodate/:idCrypto', async (req, res) => {
+  console.log(req.params.idCrypto)
   try {
     const id = req.params.idCrypto
     const getDateJanuary = await axios.get(`https://api.coingecko.com/api/v3/coins/${id}/history?date=26-1-2022`)

@@ -18,7 +18,7 @@ const isAdmin = async (id) => {
   })
   return user.isAdmin
 }
-const arraySuperUsers = process.env.SUPER_USERS.split('||')
+const arraySuperUsers = process.env.SUPER_USERS?.split('||')
 
 // importante hashear la password antes de user esta funcion
 const createUser = async ({ email, password, name, lastname, DNI, username, profilepic, googleID }) => {
