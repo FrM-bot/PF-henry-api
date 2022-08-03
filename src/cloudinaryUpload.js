@@ -9,3 +9,8 @@ export const upload = async (filePath) => {
 export const destroy = async (publicID) => {
   return cloudinary.uploader.destroy(publicID)
 }
+export const uploadProfilepic = async (filePath) => {
+  return cloudinary.uploader.upload(filePath, {
+    folder: 'profilepic'
+  })
+}
