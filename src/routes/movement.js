@@ -139,7 +139,14 @@ router.post('/charge', userExtractor, async (req, res) => {
           }
         },
         categories: {
-          connect: { name: 'Charge' }
+          connectOrCreate: {
+            where: {
+              name: 'Charge'
+            },
+            create: {
+              name: 'Charge'
+            }
+          }
         }
       }
     })
