@@ -41,7 +41,7 @@ model User {
   profilepicID String?
   accounts     Account[]
   Fav          Fav[]
-  Rating       Rating?
+  ratings      Rating?
 }
 
 model Fav {
@@ -112,6 +112,6 @@ model Rating {
   comment  String
   rate     Int      @default(1)
   reported Boolean  @default(false)
+  users    User     @relation(fields: [usersID], references: [id])
   usersID  String   @unique
-  User     User     @relation(fields: [usersID], references: [id])
 }
