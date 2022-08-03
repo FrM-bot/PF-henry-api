@@ -1,18 +1,26 @@
 import { Router } from 'express'
 import { PrismaClient } from '@prisma/client'
+import userExtractor from '../middlewares/userExtractor.js'
 const prisma = new PrismaClient()
 const router = Router()
 
-router.post('/', async (req, res) => {
+router.post('/', userExtractor, async (req, res) => {
+  const id = req.userToken
+  console.log(req.body)
   const { rate, comment } = req.body
   try {
     const newRating = await prisma.rating.create({
       data: {
         rate,
-        comment
+        comment,
+        users: {
+          connect: {
+            id
+          }
+        }
       }
     })
-    console.log(newRating)
+    // console.log(newRating)
     res.status(200).json(newRating)
   } catch (error) {
     console.log(error)
