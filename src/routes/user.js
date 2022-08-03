@@ -3,7 +3,7 @@ import { PrismaClient } from '@prisma/client'
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 import userExtractor from '../middlewares/userExtractor.js'
-import { upload, destroy } from '../cloudinaryUpload.js'
+import { upload, destroy, uploadProfilepic } from '../cloudinaryUpload.js'
 import fs from 'fs/promises'
 import { v2 as cloudinary } from 'cloudinary'
 import nodemailer from 'nodemailer'
@@ -459,6 +459,33 @@ router.put('/useredit', userExtractor, async (req, res) => {
     res.status(401).json(error)
   }
 })
+
+router.put('/updateProfilepic', userExtractor, async (req, res) => {
+  const { profilepicID: profilepicIDToRemove } = req.body
+  const id = req.userToken
+
+  try {
+    if (profilepicIDToRemove) {
+      await destroy(profilepicIDToRemove)
+    }
+    const { public_id: profilepicID, secure_url: profilepic } = await uploadProfilepic(req?.files?.newProfilepic?.tempFilePath)
+    await removeImagesToLocal([req?.files?.newProfilepic?.tempFilePath])
+    const newData = await prisma.user.update({
+      where: {
+        id
+      },
+      data: {
+        profilepic,
+        profilepicID
+      }
+    })
+    res.send(newData)
+  } catch (error) {
+    await removeImagesToLocal([req?.files?.newProfilepic?.tempFilePath])
+    console.error(error)
+  }
+})
+
 router.post('/search', userExtractor, passAdmin, async (req, res) => {
   const { username } = req.body
 
