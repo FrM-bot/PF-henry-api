@@ -541,7 +541,17 @@ router.put('/reset-password', async (req, res) => {
 
 router.post('/sendReset', async (req, res) => {
   const { email } = req.body
-  await sendMail(email)
+  const user = await prisma.user.findUnique({
+    where: {
+      email
+    }
+  })
+  if (!user) {
+    res.status(404).send({ msg: 'not found user' })
+  } else {
+    // await sendMail(email)
+    res.status(200).send({ msg: 'success' })
+  }
 })
 
 export default router
