@@ -25,22 +25,22 @@ model NewUser {
 }
 
 model User {
-  id          String    @id @default(uuid())
-  name        String
-  lastname    String
-  dni         String    @default("")
-  email       String    @unique
-  username    String    @unique
-  password    String
-  profilepic  String
+  id           String    @id @default(uuid())
+  name         String
+  lastname     String
+  dni          String    @default("")
+  email        String    @unique
+  username     String    @unique
+  password     String
+  profilepic   String
+  Validate     Boolean   @default(true)
+  accountsIDs  String[]
+  googleID     String?   @unique
+  isAdmin      Boolean   @default(false)
+  isBan        Boolean   @default(false)
   profilepicID String?
-  Validate    Boolean   @default(true)
-  accountsIDs String[]
-  googleID    String?   @unique
-  isAdmin     Boolean   @default(false)
-  isBan       Boolean   @default(false)
-  accounts    Account[]
-  Fav         Fav[]
+  accounts     Account[]
+  Fav          Fav[]
 }
 
 model Fav {
