@@ -182,7 +182,11 @@ router.post('/charge', userExtractor, async (req, res) => {
 
 router.post('/make_a_movement', userExtractor, async (req, res) => {
   const { cvuMain, amount, cvuD, currency, operation, category, comment } = req.body
-  console.log(req.body)
+  const destAcc = await prisma.account.finUnique({
+    where: {
+      cvu: cvuD
+    }
+  })
   const mainAcc = await prisma.account.findUnique({
     where: {
       cvu: cvuMain
@@ -265,6 +269,7 @@ router.post('/make_a_movement', userExtractor, async (req, res) => {
         amount,
         receipt: true,
         sentBy: cvuMain,
+        balance: destAcc.balance + amount,
         accounts: {
           connect: { cvu: cvuD }
         },
