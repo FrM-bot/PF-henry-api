@@ -316,6 +316,7 @@ router.post('/make_a_movement', userExtractor, async (req, res) => {
 
 router.post('/', async (req, res) => {
   const { cvu } = req.body
+  // console.log(cvu)
   try {
     const accountMovs = await prisma.account.findUnique({
       where: {
@@ -343,6 +344,63 @@ router.post('/', async (req, res) => {
   } catch (error) {
     console.log(error)
     res.status(400).json({ msg: 'Cannot find movements for this account' })
+  }
+})
+
+router.post('/session', async (req, res) => {
+  const { amount, destiny, comment, categories, id } = req.body
+  try {
+    const newMovInfo = await prisma.movementInfo.create({
+      data: {
+        amount,
+        destiny,
+        comment,
+        categories,
+        user: {
+          connect: {
+            id
+          }
+        }
+      }
+    })
+    if (newMovInfo) res.status(200).json({ msg: 'Session saved' })
+  } catch (error) {
+    console.log(error)
+    res.status(404).json({ error })
+  }
+})
+
+router.get('/session/:id', async (req, res) => {
+  const { id } = req.params
+  try {
+    const sessionInfo = await prisma.user.findUnique({
+      where: {
+        id
+      },
+      select: {
+        sessionInfo: true
+      }
+    })
+    if (sessionInfo) res.status(200).json(sessionInfo)
+  } catch (error) {
+    console.log(error)
+    res.status(404).json(error)
+  }
+})
+
+router.delete('/session/:id', async (req, res) => {
+  const { id } = req.params
+  try {
+    const deleteSession = await prisma.movementInfo.delete({
+      where: {
+        userId: id
+      }
+    })
+    if (deleteSession) {
+      res.status(200).json({ msg: 'Session deleted successfully' })
+    }
+  } catch (error) {
+    console.error(error)
   }
 })
 export default router

@@ -25,23 +25,24 @@ model NewUser {
 }
 
 model User {
-  id           String    @id @default(uuid())
+  id           String        @id @default(uuid())
   name         String
   lastname     String
-  dni          String    @default("")
-  email        String    @unique
-  username     String    @unique
+  dni          String        @default("")
+  email        String        @unique
+  username     String        @unique
   password     String
   profilepic   String
-  Validate     Boolean   @default(true)
+  Validate     Boolean       @default(true)
   accountsIDs  String[]
-  googleID     String?   @unique
-  isAdmin      Boolean   @default(false)
-  isBan        Boolean   @default(false)
+  googleID     String?       @unique
+  isAdmin      Boolean       @default(false)
+  isBan        Boolean       @default(false)
   profilepicID String?
   accounts     Account[]
   Fav          Fav[]
   ratings      Rating?
+  sessionInfo  MovementInfo?
 }
 
 model Fav {
@@ -114,4 +115,14 @@ model Rating {
   reported Boolean  @default(false)
   users    User     @relation(fields: [usersID], references: [id])
   usersID  String   @unique
+}
+
+model MovementInfo {
+  id         String  @id @default(uuid())
+  amount     Float?  @default(0.0)
+  destiny    String?
+  comment    String?
+  categories String?
+  user       User    @relation(fields: [userId], references: [id])
+  userId     String  @unique
 }
