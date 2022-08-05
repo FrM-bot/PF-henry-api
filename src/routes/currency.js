@@ -5,7 +5,7 @@ const router = Router()
 
 router.get('/crypto', async (req, res) => {
   try {
-    const getCryptoData = await axios.get('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=20&page=1&sparkline=false')
+    const getCryptoData = await axios.get('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=5&page=1&sparkline=false')
     const data = getCryptoData.data
     const crypts = data.map((crypt) => {
       return {
@@ -30,8 +30,8 @@ router.get('/:idCrypto', async (req, res) => {
     const id = req.params.idCrypto
     const date = new Date()
     const output = String(date.getDate()).padStart(2, '0') + '-' + String(date.getMonth() + 1).padStart(2, '0') + '-' + date.getFullYear()
-    const months = []// 04-8-2022
-    const numberOfMonths = output.substring(4, 5)// 8
+    const months = []
+    const numberOfMonths = output.substring(4, 5)
     let i = 1
     while (i <= numberOfMonths) {
       months.push(i)
@@ -55,7 +55,6 @@ router.get('/:idCrypto', async (req, res) => {
     console.error('failed')
   }
 })
-
 
 router.get('/dolarblue', async (req, res) => {
   try {
