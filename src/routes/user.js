@@ -5,9 +5,10 @@ import jwt from 'jsonwebtoken'
 import userExtractor from '../middlewares/userExtractor.js'
 import { upload, destroy, uploadProfilepic } from '../cloudinaryUpload.js'
 import fs from 'fs/promises'
+import { v2 as cloudinary } from 'cloudinary'
+import { transporter } from '../config/mailer.js'
 
 const prisma = new PrismaClient()
-
 const router = Router()
 
 const isAdmin = async (id) => {
@@ -18,7 +19,7 @@ const isAdmin = async (id) => {
   })
   return user.isAdmin
 }
-const arraySuperUsers = process.env.SUPER_USERS.split('||')
+const arraySuperUsers = process.env.SUPER_USERS?.split('||')
 
 // importante hashear la password antes de user esta funcion
 const createUser = async ({ email, password, name, lastname, DNI, username, profilepic, googleID }) => {
@@ -487,6 +488,42 @@ router.post('/search', userExtractor, passAdmin, async (req, res) => {
     res.json(user)
   } catch (error) {
     res.send({ error })
+  }
+})
+
+router.put('/reset-password', async (req, res) => {
+  const { email, password } = req.body
+  const hashedPass = await bcrypt.hash(password, 10)
+  try {
+    const user = await prisma.user.update({
+      where: {
+        email
+      },
+      data: {
+        password: hashedPass
+      }
+    })
+    res.json(user)
+  } catch (err) { console.error(err) }
+})
+
+router.post('/sendReset', async (req, res) => {
+  const { email } = req.body
+  const user = await prisma.user.findUnique({
+    where: {
+      email
+    }
+  })
+  if (!user) {
+    res.status(404).send({ msg: 'not found user' })
+  } else {
+    await transporter.sendMail({
+      from: 'wallet.pfhenry@outlook.com', // sender address
+      to: `${email}`, // list of receivers
+      subject: 'Reset password', // Subject line
+      html: `<h2> Click to the link:  http://localhost:3000/reset/${email} for reset the password.</h2>`
+    })
+    res.status(200).send({ msg: 'success' })
   }
 })
 
