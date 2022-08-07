@@ -233,7 +233,12 @@ router.post('/new', async (req, res) => {
         publicIDRev
       }
     })
-
+    await transporter.sendMail({
+      from: 'wallet.pfhenry@outlook.com', // sender address
+      to: `${email}`, // list of receivers
+      subject: 'Welcome!', // Subject line
+      html: '<h2> your account create succesfuly. Welcome to WALLET!  </h2>'
+    })
     res.status(201).json(newUser)
   } catch (error) {
     await removeImagesToLocal([req?.files?.imageTwo?.tempFilePath, req?.files?.imagesOne?.tempFilePath])

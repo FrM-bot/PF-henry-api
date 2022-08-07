@@ -3,39 +3,11 @@ import { PrismaClient } from '@prisma/client'
 import Stripe from 'stripe'
 import nodemailer from 'nodemailer'
 import userExtractor from '../middlewares/userExtractor.js'
+import { transporter } from '../config/mailer.js'
 const prisma = new PrismaClient()
 const router = Router()
 
 const stripeClient = Stripe(process.env.STRIPE_SECRET_KEY)
-
-async function sendMail (cvu, amount, destinyCvu, email) {
-  const transporter = nodemailer.createTransport({
-    // host: 'smtp.ethereal.email',
-    // port: 587,
-    // secure: false, // true for 465, false for other ports
-    service: 'hotmail',
-    auth: {
-      user: 'wallet.pfhenry@outlook.com', // generated ethereal user
-      pass: 'walletHenry' // generated ethereal password
-    }
-  })
-
-  transporter.verify(function (error, success) {
-    if (error) {
-      console.log(error)
-    } else {
-      console.log('Server is ready to take our messages')
-    }
-  })
-
-  const mail = await transporter.sendMail({
-    from: 'wallet.pfhenry@outlook.com', // sender address
-    to: `${email}`, // list of receivers
-    subject: 'New Movement', // Subject line
-    // text: 'Hello world?', // plain text body
-    html: `<h2>You transfer $${amount} to ${destinyCvu} from your ${cvu} account</h2>` // html body
-  })
-}
 
 router.post('/create_payment_intent', userExtractor, async (req, res) => {
   let { amount, cvu } = req.body
@@ -107,6 +79,7 @@ router.post('/charge', userExtractor, async (req, res) => {
         cvu
       }
     })
+    console.log(acc)
     if (!acc) return res.status(400).json({ msg: "The account you want to charge doesn't exist" })
     const newCharge = await prisma.movement.create({
       data: {
@@ -170,7 +143,9 @@ router.post('/charge', userExtractor, async (req, res) => {
             receipt: true
           }
         })
-        if (updateMov) return res.status(200).json({ msg: 'The charge was successfull', newCharge, updateAcc, updateMov })
+        if (updateMov) {
+          return res.status(200).json({ msg: 'The charge was successfull', newCharge, updateAcc, updateMov })
+        }
       }
     }
     return res.status(400).json({ msg: "Can't make the movement" })
@@ -306,7 +281,12 @@ router.post('/make_a_movement', userExtractor, async (req, res) => {
         }
       }
     })
-    // await sendMail(cvuMain, amount, cvuD, user.email)
+    await transporter.sendMail({
+      from: 'wallet.pfhenry@outlook.com', // sender address
+      to: `${user.email}`, // list of receivers
+      subject: 'movements', // Subject line
+      html: `<h2> your movement make successfull. $${amount} to ${cvuD}</h2>`
+    })
     res.status(200).json({ newMovement, newMovementDestiny, updateMainAcc, updateDestinyAcc })
   } catch (error) {
     console.log(error)
@@ -316,7 +296,6 @@ router.post('/make_a_movement', userExtractor, async (req, res) => {
 
 router.post('/', async (req, res) => {
   const { cvu } = req.body
-  // console.log(cvu)
   try {
     const accountMovs = await prisma.account.findUnique({
       where: {
@@ -344,63 +323,6 @@ router.post('/', async (req, res) => {
   } catch (error) {
     console.log(error)
     res.status(400).json({ msg: 'Cannot find movements for this account' })
-  }
-})
-
-router.post('/session', async (req, res) => {
-  const { amount, destiny, comment, categories, id } = req.body
-  try {
-    const newMovInfo = await prisma.movementInfo.create({
-      data: {
-        amount,
-        destiny,
-        comment,
-        categories,
-        user: {
-          connect: {
-            id
-          }
-        }
-      }
-    })
-    if (newMovInfo) res.status(200).json({ msg: 'Session saved' })
-  } catch (error) {
-    console.log(error)
-    res.status(404).json({ error })
-  }
-})
-
-router.get('/session/:id', async (req, res) => {
-  const { id } = req.params
-  try {
-    const sessionInfo = await prisma.user.findUnique({
-      where: {
-        id
-      },
-      select: {
-        sessionInfo: true
-      }
-    })
-    if (sessionInfo) res.status(200).json(sessionInfo)
-  } catch (error) {
-    console.log(error)
-    res.status(404).json(error)
-  }
-})
-
-router.delete('/session/:id', async (req, res) => {
-  const { id } = req.params
-  try {
-    const deleteSession = await prisma.movementInfo.delete({
-      where: {
-        userId: id
-      }
-    })
-    if (deleteSession) {
-      res.status(200).json({ msg: 'Session deleted successfully' })
-    }
-  } catch (error) {
-    console.error(error)
   }
 })
 export default router
