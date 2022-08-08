@@ -12,7 +12,7 @@ export const transporter = nodemailer.createTransport({
     rejectUnauthorized: false
   }
 })
-console.log(process.env.EMAIL_SECRET)
+
 transporter.verify().then(() => {
   console.log('ready for send emails')
 })
