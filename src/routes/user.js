@@ -401,6 +401,12 @@ router.post('/ban', userExtractor, passAdmin, async (req, res) => {
         username: true
       }
     })
+    await transporter.sendMail({
+      from: 'wallet.pfhenry@outlook.com', // sender address
+      to: `${userBanned.email}`, // list of receivers
+      subject: 'Account banned', // Subject line
+      html: `<h1>Wallet</h1><h2>Sr ${userBanned.name} your account is banned.</h2>`
+    })
     res.send(userBanned)
   } catch (error) {
     res.send({ error })
