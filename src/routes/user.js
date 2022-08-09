@@ -7,6 +7,10 @@ import { upload, destroy, uploadProfilepic } from '../cloudinaryUpload.js'
 import fs from 'fs/promises'
 import { v2 as cloudinary } from 'cloudinary'
 import { transporter } from '../config/mailer.js'
+import Cryptr from 'cryptr'
+
+const cryptr = new Cryptr('myTotallySecretKey')
+
 
 const prisma = new PrismaClient()
 const router = Router()
@@ -233,7 +237,12 @@ router.post('/new', async (req, res) => {
         publicIDRev
       }
     })
-
+    await transporter.sendMail({
+      from: 'wallet.pfhenry@outlook.com', // sender address
+      to: `${email}`, // list of receivers
+      subject: 'Welcome!', // Subject line
+      html: '<h2> your account create succesfuly. Welcome to WALLET!  </h2>'
+    })
     res.status(201).json(newUser)
   } catch (error) {
     await removeImagesToLocal([req?.files?.imageTwo?.tempFilePath, req?.files?.imagesOne?.tempFilePath])
@@ -393,6 +402,12 @@ router.post('/ban', userExtractor, passAdmin, async (req, res) => {
         username: true
       }
     })
+    await transporter.sendMail({
+      from: 'wallet.pfhenry@outlook.com', // sender address
+      to: `${userBanned.email}`, // list of receivers
+      subject: 'Account banned', // Subject line
+      html: `<h1>Wallet</h1><h2>Sr ${userBanned.name} your account is banned.</h2>`
+    })
     res.send(userBanned)
   } catch (error) {
     res.send({ error })
@@ -493,38 +508,62 @@ router.post('/search', userExtractor, passAdmin, async (req, res) => {
 
 router.put('/reset-password', async (req, res) => {
   const { email, password } = req.body
-  const hashedPass = await bcrypt.hash(password, 10)
   try {
+    const decodeEmail = cryptr.decrypt(email)
+    const hashedPass = await bcrypt.hash(password, 10)
     const user = await prisma.user.update({
       where: {
-        email
+        email: decodeEmail
       },
       data: {
         password: hashedPass
       }
     })
+    console.log(decodeEmail)
     res.json(user)
   } catch (err) { console.error(err) }
 })
 
 router.post('/sendReset', async (req, res) => {
   const { email } = req.body
-  const user = await prisma.user.findUnique({
-    where: {
-      email
-    }
-  })
-  if (!user) {
-    res.status(404).send({ msg: 'not found user' })
-  } else {
-    await transporter.sendMail({
-      from: 'wallet.pfhenry@outlook.com', // sender address
-      to: `${email}`, // list of receivers
-      subject: 'Reset password', // Subject line
-      html: `<h2> Click to the link:  http://localhost:3000/reset/${email} for reset the password.</h2>`
+// <<<<<<< HEAD
+//   const user = await prisma.user.findUnique({
+//     where: {
+//       email
+//     }
+//   })
+//   if (!user) {
+//     res.status(404).send({ msg: 'not found user' })
+//   } else {
+//     await transporter.sendMail({
+//       from: 'wallet.pfhenry@outlook.com', // sender address
+//       to: `${email}`, // list of receivers
+//       subject: 'Reset password', // Subject line
+//       html: `<h2> Click to the link:  http://localhost:3000/reset/${email} for reset the password.</h2>`
+//     })
+//     res.status(200).send({ msg: 'success' })
+//   }
+
+  try {
+    const hashedEmail = cryptr.encrypt(email)
+
+    const user = await prisma.user.findUnique({
+      where: {
+        email
+      }
     })
-    res.status(200).send({ msg: 'success' })
-  }
+    if (!user) {
+      res.status(400).send({ msg: 'not found user' })
+    } else {
+      await transporter.sendMail({
+        from: 'wallet.pfhenry@outlook.com', // sender address
+        to: `${email}`, // list of receivers
+        subject: 'Reset password', // Subject line
+        html: `<h1>Wallet.</h1><h2> Click to the link: ${process.env.URI_CLIENT}/reset/${hashedEmail} for reset the password.</h2>`
+      })
+      res.status(200).send({ msg: 'success' })
+    }
+  } catch (error) { console.error(error) }
 })
 
 export default router
