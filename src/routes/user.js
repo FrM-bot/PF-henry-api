@@ -5,6 +5,7 @@ import jwt from 'jsonwebtoken'
 import userExtractor from '../middlewares/userExtractor.js'
 import { upload, destroy, uploadProfilepic } from '../cloudinaryUpload.js'
 import fs from 'fs/promises'
+import { v2 as cloudinary } from 'cloudinary'
 import { transporter } from '../config/mailer.js'
 import Cryptr from 'cryptr'
 const cryptr = new Cryptr('myTotallySecretKey')
@@ -578,6 +579,7 @@ router.post('/sendReset', async (req, res) => {
   } catch (error) { console.error(error) }
 })
 
+
 router.delete('/removeAccount', userExtractor, async (req, res) => {
   const id = req.userToken
   try {
@@ -594,5 +596,6 @@ router.delete('/removeAccount', userExtractor, async (req, res) => {
     console.error(error)
   }
 })
+
 
 export default router
