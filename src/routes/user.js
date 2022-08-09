@@ -286,21 +286,7 @@ router.get('/', userExtractor, async (req, res) => {
             }
           }
         },
-        Fav: {
-          select: {
-            User: {
-              include: {
-                Fav: {
-                  where: {
-                    User: {
-                      isDeleted: false
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
+        Fav: true
       }
     })
     res.json(data)
