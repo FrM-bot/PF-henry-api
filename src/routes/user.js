@@ -286,12 +286,8 @@ router.get('/', userExtractor, async (req, res) => {
             }
           }
         },
-
-
         ratings: true,
-
         Fav: true
-
       }
     })
     res.json(data)
