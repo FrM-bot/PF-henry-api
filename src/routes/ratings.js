@@ -20,7 +20,7 @@ router.post('/', userExtractor, async (req, res) => {
         }
       }
     })
-    // console.log(newRating)
+    console.log(newRating)
     res.status(200).json(newRating)
   } catch (error) {
     console.log(error)
@@ -33,7 +33,8 @@ router.get('/', async (req, res) => {
     const rate = await prisma.rating.findMany({
       select: {
         rate: true,
-        comment: true
+        comment: true,
+        users: true
       }
     })
     res.status(200).json(rate)
