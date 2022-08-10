@@ -42,5 +42,4 @@ router.get('/', async (req, res) => {
     console.log(error)
   }
 })
-//holaaaa
 export default router
