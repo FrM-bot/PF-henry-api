@@ -27,7 +27,6 @@ router.get('/:id', async (req, res) => {
         }
       })
     }))
-    console.log(favourites.Fav)
     res.json(newFavourites)
   } catch (error) {
     console.log(error)
@@ -44,21 +43,26 @@ router.post('/addFavorite', userExtractor, async (req, res) => {
         username
       }
     })
-    if (userFavorite.id === id) {
-      res.status(406).send({ message: 'You can\'t add yourself.' })
-    }
-    if (!userFavorite || userFavorite.isDeleted) {
+    console.log({ userFavorite })
+    if (!userFavorite) {
       return res.status(404).send({ message: 'User not found.' })
     }
 
-    const userUpdated = await prisma.fav.create({
+    if (userFavorite?.isDeleted) {
+      return res.status(404).send({ message: 'User not found.' })
+    }
+
+    if (userFavorite?.id === id) {
+      return res.status(406).send({ message: 'You can\'t add yourself.' })
+    }
+
+    await prisma.fav.create({
       data: {
         userID: id,
         friendID: userFavorite.id
       }
     })
-    console.log(userUpdated)
-    res.send(userUpdated)
+    res.send({ success: 'You added your new favourite successfully.' })
   } catch (error) {
     console.error(error)
   }
@@ -88,10 +92,8 @@ router.get('/', userExtractor, async (req, res) => {
       }
     })
     const newData = favorites.map((favorite) => {
-      console.log(favorite.User)
       return favorite.User
     }).filter((newFav) => (newFav.isDeleted === false))
-    console.log(newData)
     res.send(newData)
   } catch (error) {
     console.error(error)

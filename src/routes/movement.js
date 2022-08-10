@@ -162,6 +162,12 @@ router.post('/make_a_movement', userExtractor, async (req, res) => {
       cvu: cvuD
     }
   })
+  if (!destAcc) return res.status(404).send({ message: 'User not found.' })
+
+  if (destAcc?.isDeleted) {
+    return res.status(404).send({ message: 'User not found.' })
+  }
+
   const mainAcc = await prisma.account.findUnique({
     where: {
       cvu: cvuMain
