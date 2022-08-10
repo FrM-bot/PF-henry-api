@@ -13,7 +13,7 @@ router.post('/create_payment_intent', userExtractor, async (req, res) => {
   let { amount, cvu } = req.body
 
   if (amount.includes(',')) {
-    return res.json({ error: 'Incorrect format amount' }).status(406)
+    return res.json({ error: 'Incorrect format for the amount. Must not use ",".' }).status(406)
   }
 
   amount = amount.includes('.') ? amount.replace('.', '') : amount.concat('00')
@@ -34,7 +34,7 @@ router.post('/create_payment_intent', userExtractor, async (req, res) => {
         }
       }
     })
-    if (!account) return res.status(400).json({ msg: "The account you want to charge doesn't exist" })
+    if (!account) return res.status(400).json({ msg: "The desired account for the charge, doesn't exists." })
     const paymentIntent = await stripeClient.paymentIntents.create({
       amount: Number(amount),
       currency: 'ars',
@@ -72,7 +72,7 @@ router.post('/charge', userExtractor, async (req, res) => {
 
   const amount = Number(amountString)
 
-  if (!cvu || !chargeMethod || !amount) return res.status(404).json({ msg: 'Necessary information never sent' })
+  if (!cvu || !chargeMethod || !amount) return res.status(404).json({ msg: 'Please, send all necessary information.' })
   try {
     const acc = await prisma.account.findUnique({
       where: {
@@ -80,7 +80,7 @@ router.post('/charge', userExtractor, async (req, res) => {
       }
     })
     console.log(acc)
-    if (!acc) return res.status(400).json({ msg: "The account you want to charge doesn't exist" })
+    if (!acc) return res.status(400).json({ msg: "The desired account for the charge, doesn't exists." })
     const newCharge = await prisma.movement.create({
       data: {
         amount,
@@ -144,14 +144,14 @@ router.post('/charge', userExtractor, async (req, res) => {
           }
         })
         if (updateMov) {
-          return res.status(200).json({ msg: 'The charge was successfull', newCharge, updateAcc, updateMov })
+          return res.status(200).json({ msg: 'The charge was successful.', newCharge, updateAcc, updateMov })
         }
       }
     }
-    return res.status(400).json({ msg: "Can't make the movement" })
+    return res.status(400).json({ msg: "Can't proceed with transaction." })
   } catch (error) {
     console.log(error)
-    res.status(400).json({ msg: "Can't make this charge" })
+    res.status(400).json({ msg: "Can't perform this charge." })
   }
 })
 
@@ -173,7 +173,7 @@ router.post('/make_a_movement', userExtractor, async (req, res) => {
       id: mainAcc.usersIDs
     }
   })
-  if (mainAcc.balance < amount) return res.status(400).json({ msg: 'Your balance is less than necessary' })
+  if (mainAcc.balance < amount) return res.status(400).json({ msg: 'Please enter a valid amount. It must not exceed your current balance.' })
   try {
     const updateMainAcc = await prisma.account.update({
       where: {
@@ -284,13 +284,18 @@ router.post('/make_a_movement', userExtractor, async (req, res) => {
     await transporter.sendMail({
       from: 'wallet.pfhenry@outlook.com', // sender address
       to: `${user.email}`, // list of receivers
-      subject: 'movements', // Subject line
-      html: `<h2> your movement make successfull. $${amount} to ${cvuD}</h2>`
+      subject: 'Transaction successful!', // Subject line
+      html: `<h1>wallet.</h1>
+      <br/>
+      <p> Your transaction was successful! </p>
+      <p> $ ${amount} pesos, were sent to the account with CVU ${cvuD} </p>
+      <br/>
+      <p>Thanks for using your <strong>wallet</strong>.</p>`
     })
     res.status(200).json({ newMovement, newMovementDestiny, updateMainAcc, updateDestinyAcc })
   } catch (error) {
     console.log(error)
-    res.status(400).json({ msg: "Can't make the movement, try again later" })
+    res.status(400).json({ msg: "Can't perform the transaction. Please, try again later." })
   }
 })
 
@@ -322,7 +327,7 @@ router.post('/', async (req, res) => {
     res.status(200).json(accountMovs)
   } catch (error) {
     console.log(error)
-    res.status(400).json({ msg: 'Cannot find movements for this account' })
+    res.status(400).json({ msg: 'Could not find any transactions related to this account.' })
   }
 })
 
@@ -342,7 +347,7 @@ router.post('/session', async (req, res) => {
         }
       }
     })
-    if (newMovInfo) res.status(200).json({ msg: 'Session saved' })
+    if (newMovInfo) res.status(200).json({ msg: 'Session saved.' })
   } catch (error) {
     console.log(error)
     res.status(404).json({ error })

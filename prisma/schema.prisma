@@ -39,11 +39,11 @@ model User {
   isAdmin      Boolean       @default(false)
   isBan        Boolean       @default(false)
   profilepicID String?
+  isDeleted    Boolean       @default(false)
   accounts     Account[]
   Fav          Fav[]
   sessionInfo  MovementInfo?
   ratings      Rating?
-  isDeleted    Boolean      @default(false)
 }
 
 model Fav {
