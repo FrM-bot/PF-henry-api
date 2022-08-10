@@ -100,4 +100,17 @@ router.get('/riesgopais', async (req, res) => {
   }
 })
 
+router.get('/news/:pageParam', async (req, res) => {
+  try {
+    const apiKey3 = '3dcb7b18d0b84b06a7b12c75f0633083'
+    const { pageParam } = req.params
+
+    const fetchData = await axios.get(`https://newsapi.org/v2/everything?domains=wsj.com&apiKey=${apiKey3}&pageSize=10&page=${pageParam}`)
+    const data = fetchData.data.articles
+    res.send(data)
+  } catch (error) {
+    console.error(error)
+  }
+})
+
 export default router
