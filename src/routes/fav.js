@@ -1,5 +1,6 @@
 import { Router } from 'express'
 import { PrismaClient } from '@prisma/client'
+import userExtractor from '../middlewares/userExtractor.js'
 const prisma = new PrismaClient()
 const router = Router()
 
@@ -10,9 +11,8 @@ router.get('/:id', async (req, res) => {
       where: {
         id
       },
-      select: {
+      include: {
         Fav: true
-
       }
     })
     const newFavourites = await Promise.all(favourites.Fav.map(async (favourite) => {
@@ -27,9 +27,94 @@ router.get('/:id', async (req, res) => {
         }
       })
     }))
+    console.log(favourites.Fav)
     res.json(newFavourites)
   } catch (error) {
     console.log(error)
+  }
+})
+
+router.post('/addFavorite', userExtractor, async (req, res) => {
+  const id = req.userToken
+  const { username } = req.body
+  console.log(id, username)
+
+  try {
+    const userFavorite = await prisma.user.findUnique({
+      where: {
+        username
+      }
+    })
+    if (!userFavorite) {
+      return res.status(404).send({ message: 'user not found.' })
+    }
+
+    const userUpdated = await prisma.fav.create({
+      data: {
+        userID: id,
+        friendID: userFavorite.id
+      }
+    })
+    console.log(userUpdated)
+    res.send(userUpdated)
+  } catch (error) {
+    console.error(error)
+  }
+})
+
+router.get('/', userExtractor, async (req, res) => {
+  const id = req.userToken
+
+  try {
+    const favorites = await prisma.fav.findMany({
+      where: {
+        userID: id
+      },
+      select: {
+        User: {
+          select: {
+            id: true,
+            profilepic: true,
+            username: true,
+            name: true,
+            lastname: true,
+            accounts: true,
+            email: true,
+            isDeleted: true
+          }
+        }
+      }
+    })
+    const newData = favorites.map((favorite) => {
+      console.log(favorite.User)
+      return favorite.User
+    }).filter((newFav) => (newFav.isDeleted === false))
+    console.log(newData)
+    res.send(newData)
+  } catch (error) {
+    console.error(error)
+  }
+})
+
+router.delete('/removeFavorite', userExtractor, async (req, res) => {
+  const id = req.userToken
+  const { friendID } = req.body
+  try {
+    const favoritesToRemoved = await prisma.fav.deleteMany({
+      where: {
+        AND: [
+          {
+            userID: id
+          },
+          {
+            friendID
+          }
+        ]
+      }
+    })
+    res.send(favoritesToRemoved)
+  } catch (error) {
+    console.error(error)
   }
 })
 

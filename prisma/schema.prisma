@@ -41,15 +41,16 @@ model User {
   profilepicID String?
   accounts     Account[]
   Fav          Fav[]
-  ratings      Rating?
   sessionInfo  MovementInfo?
+  ratings      Rating?
+  isDeleted    Boolean      @default(false)
 }
 
 model Fav {
   id       String @id @default(uuid())
   friendID String
   userID   String
-  User     User   @relation(fields: [userID], references: [id])
+  User     User   @relation(fields: [friendID], references: [id])
 }
 
 model Account {
@@ -113,8 +114,8 @@ model Rating {
   comment  String
   rate     Int      @default(1)
   reported Boolean  @default(false)
-  users    User     @relation(fields: [usersID], references: [id])
   usersID  String   @unique
+  users    User     @relation(fields: [usersID], references: [id])
 }
 
 model MovementInfo {
@@ -123,6 +124,6 @@ model MovementInfo {
   destiny    String?
   comment    String?
   categories String?
-  user       User    @relation(fields: [userId], references: [id])
   userId     String  @unique
+  user       User    @relation(fields: [userId], references: [id])
 }

@@ -8,7 +8,6 @@ import fs from 'fs/promises'
 import { v2 as cloudinary } from 'cloudinary'
 import { transporter } from '../config/mailer.js'
 import Cryptr from 'cryptr'
-
 const cryptr = new Cryptr('myTotallySecretKey')
 
 
@@ -288,6 +287,7 @@ router.get('/', userExtractor, async (req, res) => {
             }
           }
         },
+        ratings: true,
         Fav: true
       }
     })
@@ -326,7 +326,11 @@ router.post('/login', async (req, res) => {
       })
 
       if (user.isBan) {
-        return res.send({ message: 'You were banned from the platform.' }).status(401)
+        return res.send({ error: 'You were banned from the platform.' }).status(401)
+      }
+
+      if (user.isDeleted) {
+        return res.status(404).send({ error: 'User not found' })
       }
 
       const dataForToken = {
@@ -354,7 +358,11 @@ router.post('/login', async (req, res) => {
     }
 
     if (user.isBan) {
-      return res.send({ message: 'You were banned from the platform.' }).status(401)
+      return res.send({ error: 'You were banned from the platform.' }).status(401)
+    }
+
+    if (user.isDeleted) {
+      return res.status(404).send({ error: 'User not found' })
     }
 
     const passwordIs = user ? (await bcrypt.compare(password, user.password)) : (false)
@@ -413,31 +421,42 @@ router.post('/ban', userExtractor, passAdmin, async (req, res) => {
     res.send({ error })
   }
 })
-router.put('/useredit', userExtractor, async (req, res) => {
-  const { username, profilepic, password } = req.body
+router.put('/changePassword', userExtractor, async (req, res) => {
   const id = req.userToken
-  let hashedPass = ''
+  const { newPassword, oldPassword } = req.body
   // const passwordIs = id ? (await bcrypt.compare(password, id.password)) : (false)
-  if (password) {
-    hashedPass = await bcrypt.hash(password, 10)
+  if (!newPassword || !oldPassword) {
+    return res.send({ error: 'You need send new password and old password.' })
   }
+  // console.log({ newPassword, oldPassword })
+  // return res.send({ newPassword, oldPassword })
   try {
     const user = await prisma.user.findUnique({
       where: {
         id
       }
     })
-    const data = await prisma.user.update({
+
+    if (!user) {
+      return res.send({ error: 'User not found.' }).status(404)
+    }
+
+    const isCorrectOldPassword = await bcrypt.compare(oldPassword, user.password)
+    if (!isCorrectOldPassword) {
+      return res.send({ error: 'Incorrect old password.' })
+    }
+
+    const password = await bcrypt.hash(newPassword, 10)
+
+    await prisma.user.update({
       where: {
         id
       },
       data: {
-        username: username || user.username,
-        password: hashedPass || user.password,
-        profilepic: profilepic || user.profilepic
+        password
       }
     })
-    res.json(data)
+    res.json({ message: 'Password changed.' })
   } catch (error) {
     res.status(401).json(error)
   }
@@ -565,5 +584,24 @@ router.post('/sendReset', async (req, res) => {
     }
   } catch (error) { console.error(error) }
 })
+
+
+router.delete('/removeAccount', userExtractor, async (req, res) => {
+  const id = req.userToken
+  try {
+    await prisma.user.update({
+      where: {
+        id
+      },
+      data: {
+        isDeleted: true
+      }
+    })
+    res.send({ message: 'Your account is removed.' })
+  } catch (error) {
+    console.error(error)
+  }
+})
+
 
 export default router
