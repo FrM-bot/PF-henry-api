@@ -9,7 +9,7 @@ export default (req, res, next) => {
   }
 
   if (Token === null) {
-    res.status(401).json({ error: 'Token not exists' }).end()
+    res.status(401).json({ error: 'Token does not exist' }).end()
   }
 
   try {

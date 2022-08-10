@@ -1,5 +1,6 @@
 import { Router } from 'express'
 import { PrismaClient } from '@prisma/client'
+import userExtractor from '../middlewares/userExtractor.js'
 const prisma = new PrismaClient()
 const router = Router()
 
@@ -10,9 +11,8 @@ router.get('/:id', async (req, res) => {
       where: {
         id
       },
-      select: {
+      include: {
         Fav: true
-
       }
     })
     const newFavourites = await Promise.all(favourites.Fav.map(async (favourite) => {
@@ -33,6 +33,95 @@ router.get('/:id', async (req, res) => {
   }
 })
 
+router.post('/addFavorite', userExtractor, async (req, res) => {
+  const id = req.userToken
+  const { username } = req.body
+
+  try {
+    const userFavorite = await prisma.user.findUnique({
+      where: {
+        username
+      }
+    })
+    console.log({ userFavorite })
+    if (!userFavorite) {
+      return res.status(404).send({ message: 'User not found.' })
+    }
+
+    if (userFavorite?.isDeleted) {
+      return res.status(404).send({ message: 'User not found.' })
+    }
+
+    if (userFavorite?.id === id) {
+      return res.status(406).send({ message: 'You can\'t add yourself.' })
+    }
+
+    await prisma.fav.create({
+      data: {
+        userID: id,
+        friendID: userFavorite.id
+      }
+    })
+    res.send({ success: 'You added your new favourite successfully.' })
+  } catch (error) {
+    console.error(error)
+  }
+})
+
+router.get('/', userExtractor, async (req, res) => {
+  const id = req.userToken
+
+  try {
+    const favorites = await prisma.fav.findMany({
+      where: {
+        userID: id
+      },
+      select: {
+        User: {
+          select: {
+            id: true,
+            profilepic: true,
+            username: true,
+            name: true,
+            lastname: true,
+            accounts: true,
+            email: true,
+            isDeleted: true
+          }
+        }
+      }
+    })
+    const newData = favorites.map((favorite) => {
+      return favorite.User
+    }).filter((newFav) => (newFav.isDeleted === false))
+    res.send(newData)
+  } catch (error) {
+    console.error(error)
+  }
+})
+
+router.delete('/removeFavorite', userExtractor, async (req, res) => {
+  const id = req.userToken
+  const { friendID } = req.body
+  try {
+    const favoritesToRemoved = await prisma.fav.deleteMany({
+      where: {
+        AND: [
+          {
+            userID: id
+          },
+          {
+            friendID
+          }
+        ]
+      }
+    })
+    res.send(favoritesToRemoved)
+  } catch (error) {
+    console.error(error)
+  }
+})
+
 router.post('/createFavourites', async (req, res) => {
   const { id, cvu, username } = req.body
   const validateUsername = Number(username)
@@ -46,13 +135,13 @@ router.post('/createFavourites', async (req, res) => {
           users: true
         }
       })
-      if (!favAcc) return res.status(400).json({ msg: "The fav u want to add doesn't exist" })
+      if (!favAcc) return res.status(400).json({ msg: "The contact you want to add doesn't exist." })
       const favAlready = await prisma.fav.findMany({
         where: {
           friendID: favAcc.usersIDs
         }
       })
-      if (favAlready.length > 0) return res.status(400).json({ msg: 'Fav already created' })
+      if (favAlready.length > 0) return res.status(400).json({ msg: 'Favourite already added.' })
       const findUser = await prisma.fav.create({
         data: {
           friendID: favAcc.usersIDs,
@@ -89,7 +178,7 @@ router.post('/createFavourites', async (req, res) => {
           username
         }
       })
-      if (!fav) return res.status(400).json({ msg: "the user u want to add doesn't exist" })
+      if (!fav) return res.status(400).json({ msg: "The contact you want to add doesn't exist." })
       const favArleady = await prisma.user.findUnique({
         where: {
           id
@@ -101,7 +190,7 @@ router.post('/createFavourites', async (req, res) => {
       const same = favArleady.Fav.some(e => {
         return e.friendID === fav.id
       })
-      if (same) return res.status(400).json({ msg: 'Fav already created' })
+      if (same) return res.status(400).json({ msg: 'Favourite already added.' })
       const newFav = await prisma.fav.create({
         data: {
           friendID: fav.id,
@@ -148,10 +237,10 @@ router.delete('/:id', async (req, res) => {
         id: favInfo[0].id
       }
     })
-    res.json({ removeFav, msg: 'Favorite deleted' })
+    res.json({ removeFav, msg: 'Favourite deleted.' })
   } catch (error) {
     console.log(error)
-    res.status(400).json({ msg: "Can't delete" })
+    res.status(400).json({ msg: "Can't delete." })
   }
 })
 
