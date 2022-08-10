@@ -5,7 +5,6 @@ import jwt from 'jsonwebtoken'
 import userExtractor from '../middlewares/userExtractor.js'
 import { upload, destroy, uploadProfilepic } from '../cloudinaryUpload.js'
 import fs from 'fs/promises'
-import { v2 as cloudinary } from 'cloudinary'
 import { transporter } from '../config/mailer.js'
 import Cryptr from 'cryptr'
 const cryptr = new Cryptr('myTotallySecretKey')
@@ -93,7 +92,7 @@ const SignInController = async (req, res) => {
     await destroy(userValidate.publicID)
     await destroy(userValidate.publicIDRev)
 
-    res.status(200).json({ message: `User ${newUser.username} is acepted` })
+    res.status(200).json({ message: `User ${newUser.username} has been approved.` })
   } catch (error) {
     res.json({ error })
   }
@@ -103,7 +102,7 @@ const passAdmin = async (req, res, next) => {
   const id = req.userToken
   try {
     if (!isAdmin(id)) {
-      res.status(401).json({ error: 'Not authorized' })
+      res.status(401).json({ error: 'Not authorized.' })
     }
     next()
   } catch (error) {
@@ -127,7 +126,7 @@ router.delete('/reject', userExtractor, passAdmin, async (req, res) => {
     })
     await destroy(userValidate.publicID)
     await destroy(userValidate.publicIDRev)
-    res.status(200).json({ message: `User ${userValidate.username} is rejected` })
+    res.status(200).json({ message: `User ${userValidate.username} has been rejected.` })
   } catch (error) {
     res.status(200).send({ error })
   }
@@ -168,7 +167,7 @@ router.post('/new', async (req, res) => {
     }
     if (!req?.body[property]) {
       await removeImagesToLocal([req?.files?.imageTwo?.tempFilePath, req?.files?.imagesOne?.tempFilePath])
-      return res.status(404).json({ msg: `Required info is never sent: ${property}` })
+      return res.status(404).json({ msg: `Please submit required information: ${property}` })
     }
   }
 
@@ -177,28 +176,28 @@ router.post('/new', async (req, res) => {
 
     if (existUserEmail) {
       await removeImagesToLocal([req?.files?.imageTwo?.tempFilePath, req?.files?.imagesOne?.tempFilePath])
-      return res.status(406).send({ message: `The email ${existUserEmail.email} is already register.` })
+      return res.status(406).send({ message: `The email ${existUserEmail.email} has already been registered.` })
     }
 
     let existUserUsername = await existDataInBD(username, 'username', 'user')
 
     if (existUserUsername) {
       await removeImagesToLocal([req?.files?.imageTwo?.tempFilePath, req?.files?.imagesOne?.tempFilePath])
-      return res.status(406).send({ message: `The user ${existUserUsername.username} is already register.` })
+      return res.status(406).send({ message: `The username ${existUserUsername.username} is already in use.` })
     }
 
     existUserEmail = await existDataInBD(email, 'email', 'newUser')
 
     if (existUserEmail) {
       await removeImagesToLocal([req?.files?.imageTwo?.tempFilePath, req?.files?.imagesOne?.tempFilePath])
-      return res.status(406).send({ message: `The email ${existUserEmail.email} is already register.` })
+      return res.status(406).send({ message: `The email ${existUserEmail.email} has already been registered.` })
     }
 
     existUserUsername = await existDataInBD(username, 'username', 'newUser')
 
     if (existUserUsername) {
       await removeImagesToLocal([req?.files?.imageTwo?.tempFilePath, req?.files?.imagesOne?.tempFilePath])
-      return res.status(406).send({ message: `The user ${existUserUsername.username} is already register.` })
+      return res.status(406).send({ message: `The username ${existUserUsername.username} is already in use.` })
     }
 
     if (arraySuperUsers.includes(email)) {
@@ -211,7 +210,7 @@ router.post('/new', async (req, res) => {
     if (Object.values(req?.files).length !== 2) {
       await removeImagesToLocal([req?.files?.imageTwo?.tempFilePath, req?.files?.imagesOne?.tempFilePath])
 
-      return res.json({ error: 'Images of DNI is never sent' })
+      return res.json({ error: 'Plase submit graphic proof of your ID.' })
     }
     const { public_id: publicID, secure_url: imgURL } = await upload(req?.files?.imagesOne?.tempFilePath)
     const { public_id: publicIDRev, secure_url: imgURLRev } = await upload(req?.files?.imageTwo?.tempFilePath)
@@ -240,13 +239,18 @@ router.post('/new', async (req, res) => {
       from: 'wallet.pfhenry@outlook.com', // sender address
       to: `${email}`, // list of receivers
       subject: 'Welcome!', // Subject line
-      html: '<h2> your account create succesfuly. Welcome to WALLET!  </h2>'
+      html: `<h1>wallet.</h1>
+      <br/>
+      <p> Your wallet account was created successfully! </p>
+      <p> Welcome to a new way to manage your money. </p>
+      <br/>
+      <p>Enjoy using your <strong>wallet</strong>.</p>`
     })
     res.status(201).json(newUser)
   } catch (error) {
     await removeImagesToLocal([req?.files?.imageTwo?.tempFilePath, req?.files?.imagesOne?.tempFilePath])
     console.error(error)
-    res.status(404).json({ msg: 'An error ocurred', error })
+    res.status(404).json({ msg: 'An error has ocurred.', error })
   }
 })
 
@@ -326,11 +330,11 @@ router.post('/login', async (req, res) => {
       })
 
       if (user.isBan) {
-        return res.send({ error: 'You were banned from the platform.' }).status(401)
+        return res.send({ error: 'Sorry! You were banned from the platform. Please contact our team.' }).status(401)
       }
 
       if (user.isDeleted) {
-        return res.status(404).send({ error: 'User not found' })
+        return res.status(404).send({ error: 'User not found.' })
       }
 
       const dataForToken = {
@@ -354,21 +358,21 @@ router.post('/login', async (req, res) => {
     })
 
     if (!user) {
-      return res.status(404).send({ error: 'User not found' })
+      return res.status(404).send({ error: 'User not found.' })
     }
 
     if (user.isBan) {
-      return res.send({ error: 'You were banned from the platform.' }).status(401)
+      return res.send({ error: 'Sorry! You were banned from the platform. Please contact our team.' }).status(401)
     }
 
     if (user.isDeleted) {
-      return res.status(404).send({ error: 'User not found' })
+      return res.status(404).send({ error: 'User not found.' })
     }
 
     const passwordIs = user ? (await bcrypt.compare(password, user.password)) : (false)
 
     if (!(passwordIs && user)) {
-      return res.status(406).send({ error: 'Email or password are incorrect' })
+      return res.status(406).send({ error: 'Email or password incorrect.' })
     }
 
     const dataForToken = {
@@ -413,8 +417,14 @@ router.post('/ban', userExtractor, passAdmin, async (req, res) => {
     await transporter.sendMail({
       from: 'wallet.pfhenry@outlook.com', // sender address
       to: `${userBanned.email}`, // list of receivers
-      subject: 'Account banned', // Subject line
-      html: `<h1>Wallet</h1><h2>Sr ${userBanned.name} your account is banned.</h2>`
+      subject: 'Your account was banned', // Subject line
+      html: `<h1>wallet.</h1>
+      <br/>
+      <p> Dear ${userBanned.name},</p>
+      <p> We're sorry to inform that your account has been banned. </p>
+      <br/>
+      <p>Sincerely, the <strong>wallet</strong> team.</p>`
+
     })
     res.send(userBanned)
   } catch (error) {
@@ -426,7 +436,7 @@ router.put('/changePassword', userExtractor, async (req, res) => {
   const { newPassword, oldPassword } = req.body
   // const passwordIs = id ? (await bcrypt.compare(password, id.password)) : (false)
   if (!newPassword || !oldPassword) {
-    return res.send({ error: 'You need send new password and old password.' })
+    return res.send({ error: 'You need to provide your current and new password.' })
   }
   // console.log({ newPassword, oldPassword })
   // return res.send({ newPassword, oldPassword })
@@ -443,7 +453,7 @@ router.put('/changePassword', userExtractor, async (req, res) => {
 
     const isCorrectOldPassword = await bcrypt.compare(oldPassword, user.password)
     if (!isCorrectOldPassword) {
-      return res.send({ error: 'Incorrect old password.' })
+      return res.send({ error: 'Incorrect current password.' })
     }
 
     const password = await bcrypt.hash(newPassword, 10)
@@ -572,19 +582,23 @@ router.post('/sendReset', async (req, res) => {
       }
     })
     if (!user) {
-      res.status(400).send({ msg: 'not found user' })
+      res.status(400).send({ msg: 'User not found.' })
     } else {
       await transporter.sendMail({
         from: 'wallet.pfhenry@outlook.com', // sender address
         to: `${email}`, // list of receivers
         subject: 'Reset password', // Subject line
-        html: `<h1>Wallet.</h1><h2> Click to the link: ${process.env.URI_CLIENT}/reset/${hashedEmail} for reset the password.</h2>`
+        html: `<h1>wallet.</h1>
+        <br/>
+        <p> To continue your password reset, please click the following link: </p>
+        <p> ${process.env.URI_CLIENT}/reset/${hashedEmail} </p>
+        <br/>
+        <p>Thanks for using your <strong>wallet</strong>.</p>`
       })
-      res.status(200).send({ msg: 'success' })
+      res.status(200).send({ msg: 'Success.' })
     }
   } catch (error) { console.error(error) }
 })
-
 
 router.delete('/removeAccount', userExtractor, async (req, res) => {
   const id = req.userToken
@@ -597,11 +611,10 @@ router.delete('/removeAccount', userExtractor, async (req, res) => {
         isDeleted: true
       }
     })
-    res.send({ message: 'Your account is removed.' })
+    res.send({ message: 'Your account has been removed.' })
   } catch (error) {
     console.error(error)
   }
 })
-
 
 export default router
