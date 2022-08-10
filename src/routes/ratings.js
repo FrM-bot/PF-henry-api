@@ -24,7 +24,7 @@ router.post('/', userExtractor, async (req, res) => {
     res.status(200).json(newRating)
   } catch (error) {
     console.log(error)
-    res.status(400).json({ msg: "Can't create the rate." })
+    res.status(400).json({ msg: "Can't post the review." })
   }
 })
 

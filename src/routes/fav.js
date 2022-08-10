@@ -46,7 +46,7 @@ router.post('/addFavorite', userExtractor, async (req, res) => {
       }
     })
     if (!userFavorite) {
-      return res.status(404).send({ message: 'user not found.' })
+      return res.status(404).send({ message: 'User not found.' })
     }
 
     const userUpdated = await prisma.fav.create({
@@ -131,13 +131,13 @@ router.post('/createFavourites', async (req, res) => {
           users: true
         }
       })
-      if (!favAcc) return res.status(400).json({ msg: "The fav u want to add doesn't exist" })
+      if (!favAcc) return res.status(400).json({ msg: "The contact you want to add doesn't exist." })
       const favAlready = await prisma.fav.findMany({
         where: {
           friendID: favAcc.usersIDs
         }
       })
-      if (favAlready.length > 0) return res.status(400).json({ msg: 'Fav already created' })
+      if (favAlready.length > 0) return res.status(400).json({ msg: 'Favourite already added.' })
       const findUser = await prisma.fav.create({
         data: {
           friendID: favAcc.usersIDs,
@@ -174,7 +174,7 @@ router.post('/createFavourites', async (req, res) => {
           username
         }
       })
-      if (!fav) return res.status(400).json({ msg: "the user u want to add doesn't exist" })
+      if (!fav) return res.status(400).json({ msg: "The contact you want to add doesn't exist." })
       const favArleady = await prisma.user.findUnique({
         where: {
           id
@@ -186,7 +186,7 @@ router.post('/createFavourites', async (req, res) => {
       const same = favArleady.Fav.some(e => {
         return e.friendID === fav.id
       })
-      if (same) return res.status(400).json({ msg: 'Fav already created' })
+      if (same) return res.status(400).json({ msg: 'Favourite already added.' })
       const newFav = await prisma.fav.create({
         data: {
           friendID: fav.id,
@@ -233,10 +233,10 @@ router.delete('/:id', async (req, res) => {
         id: favInfo[0].id
       }
     })
-    res.json({ removeFav, msg: 'Favorite deleted' })
+    res.json({ removeFav, msg: 'Favourite deleted.' })
   } catch (error) {
     console.log(error)
-    res.status(400).json({ msg: "Can't delete" })
+    res.status(400).json({ msg: "Can't delete." })
   }
 })
 
