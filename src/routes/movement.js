@@ -1,7 +1,6 @@
 import { Router } from 'express'
 import { PrismaClient } from '@prisma/client'
 import Stripe from 'stripe'
-import nodemailer from 'nodemailer'
 import userExtractor from '../middlewares/userExtractor.js'
 import { transporter } from '../config/mailer.js'
 const prisma = new PrismaClient()
