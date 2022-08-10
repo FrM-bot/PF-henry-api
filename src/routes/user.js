@@ -9,6 +9,7 @@ import { transporter } from '../config/mailer.js'
 import Cryptr from 'cryptr'
 const cryptr = new Cryptr('myTotallySecretKey')
 
+
 const prisma = new PrismaClient()
 const router = Router()
 
@@ -554,6 +555,24 @@ router.put('/reset-password', async (req, res) => {
 
 router.post('/sendReset', async (req, res) => {
   const { email } = req.body
+// <<<<<<< HEAD
+//   const user = await prisma.user.findUnique({
+//     where: {
+//       email
+//     }
+//   })
+//   if (!user) {
+//     res.status(404).send({ msg: 'not found user' })
+//   } else {
+//     await transporter.sendMail({
+//       from: 'wallet.pfhenry@outlook.com', // sender address
+//       to: `${email}`, // list of receivers
+//       subject: 'Reset password', // Subject line
+//       html: `<h2> Click to the link:  http://localhost:3000/reset/${email} for reset the password.</h2>`
+//     })
+//     res.status(200).send({ msg: 'success' })
+//   }
+
   try {
     const hashedEmail = cryptr.encrypt(email)
 
