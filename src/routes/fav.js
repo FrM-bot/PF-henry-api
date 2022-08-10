@@ -37,7 +37,6 @@ router.get('/:id', async (req, res) => {
 router.post('/addFavorite', userExtractor, async (req, res) => {
   const id = req.userToken
   const { username } = req.body
-  console.log(id, username)
 
   try {
     const userFavorite = await prisma.user.findUnique({
@@ -45,7 +44,10 @@ router.post('/addFavorite', userExtractor, async (req, res) => {
         username
       }
     })
-    if (!userFavorite) {
+    if (userFavorite.id === id) {
+      res.status(406).send({ message: 'You can\'t add yourself.' })
+    }
+    if (!userFavorite || userFavorite.isDeleted) {
       return res.status(404).send({ message: 'User not found.' })
     }
 
