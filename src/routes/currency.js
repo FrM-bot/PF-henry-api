@@ -102,7 +102,7 @@ router.get('/riesgopais', async (req, res) => {
 
 router.get('/news/:pageParam', async (req, res) => {
   try {
-    const apiKey3 = '3dcb7b18d0b84b06a7b12c75f0633083'
+    const apiKey3 = '66b54c0b1d0444a48de1291d57f5e137'
     const { pageParam } = req.params
 
     const fetchData = await axios.get(`https://newsapi.org/v2/everything?domains=wsj.com&apiKey=${apiKey3}&pageSize=10&page=${pageParam}`)
